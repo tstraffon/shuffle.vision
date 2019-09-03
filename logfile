@@ -1,0 +1,14 @@
+2019-03-30 17:11:17.661 EDT [33174] LOG:  could not bind IPv6 address "::1": Address already in use
+2019-03-30 17:11:17.661 EDT [33174] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2019-03-30 17:11:17.661 EDT [33174] LOG:  could not bind IPv4 address "127.0.0.1": Address already in use
+2019-03-30 17:11:17.661 EDT [33174] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2019-03-30 17:11:17.661 EDT [33174] WARNING:  could not create listen socket for "localhost"
+2019-03-30 17:11:17.661 EDT [33174] FATAL:  could not create any TCP/IP sockets
+2019-03-30 17:11:17.661 EDT [33174] LOG:  database system is shut down
+2019-03-30 17:11:40.785 EDT [33431] LOG:  could not bind IPv6 address "::1": Address already in use
+2019-03-30 17:11:40.785 EDT [33431] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2019-03-30 17:11:40.785 EDT [33431] LOG:  could not bind IPv4 address "127.0.0.1": Address already in use
+2019-03-30 17:11:40.785 EDT [33431] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2019-03-30 17:11:40.785 EDT [33431] WARNING:  could not create listen socket for "localhost"
+2019-03-30 17:11:40.785 EDT [33431] FATAL:  could not create any TCP/IP sockets
+2019-03-30 17:11:40.785 EDT [33431] LOG:  database system is shut down

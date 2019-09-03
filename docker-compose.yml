@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5431:5432
+    environment:
+      POSTGRES_PASSWORD: example
+
+  # pgbouncer:
+  #   image: edoburu/pgbouncer:1.8.1
+  #   environment:
+  #     # DB_URL: postgresql://postgres:admin@localhost:5431/postgres
+  #     DB_HOST: localhost
+  #     DB_USER: postgres    
+  #     DB_PASSWORD: admin
+  #     DB_PORT: 5431
+  #     POOL_MODE: transaction
+  #     MAX_CLIENT_CONN: '1000'               
+  #   links:
+  #     - db:db
+  #   ports:
+  #     - 6432:6432 
+
+# networks:
+#   default:
+#       external:
+#           # name: composer_default
+#           name: net_basic

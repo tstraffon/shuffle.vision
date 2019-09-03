@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway|Rock+Salt');
+
+
+/*  #####  COMPONENT STYLES  ##### */
+
+/* .component-container {
+  height: 65em;
+  width: 100%;
+  position: relative;
+  padding: 2.5em 15em;
+
+}
+
+
+  .component-header-container {
+    text-align: center;
+  }
+
+    .component-header {
+      font-family: 'Rock Salt', cursive;
+
+      font-size: 20;
+      margin: 0;
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      color: white;
+      margin-right: -50%;
+      transform: translate(-50%, -50%) 
+  }
+
+  .component-body {
+    background-color: #333333;
+    height: 100%;
+    opacity: 0.80;
+    border-radius: 25px;
+    padding: 50px;
+  } */
+
+
+
+/*  #####  NAVBAR STYLES  ##### */
+/* 
+.navbar,
+.navbar-default {
+  float: left;
+} 
+
+  .navbar-container {
+    margin: 50px 50px 50px 50px;
+    padding: 10px 10px;
+    width: 80%;
+    height: 7.5em;
+  }
+
+
+    .navbar-menu {
+      padding-top: 15px;
+    }
+
+      .navbar-menu-item {
+        margin: 0 15px;
+        display: inline;
+        font-size: 24px;
+        padding: 10px;
+        border-radius: 5px;
+
+      }
+
+      .navbar-menu-item :hover {
+        color: white;
+        text-decoration: none;
+        background-color: #333333;
+        opacity: 0.80;
+        border-radius: 10px;
+      }
+
+        .navbar a {
+          display: inline-block;
+          color: rgb(0, 0, 0);
+          font-family: 'Rock Salt', cursive;
+          text-decoration: none;
+          padding: 10px;
+        } */
+
+        /* .navbar a :hover {
+          color: white;
+          text-decoration: none;
+          background-color: #333333;
+          opacity: 0.80;
+          border-radius: 10px;
+        } */
+
+
+/*  #####  SOCIAL MEDIA BANNER STYLES  ##### */
+
+/* .social-media-banner-container {
+  height: 10em;
+  width: 100%;
+  margin-top: -5em;
+  position: absolute;
+  padding: 0em 15em 2em 15em;
+  text-align: center;
+  margin-bottom: 4em;
+
+} */
+.social-media-banner ul {
+  display: flex;
+  flex-wrap: wrap;
+  /* padding: 0; */
+}
+
+.social-media-banner li {
+    margin: auto;
+    display: inline-block;
+    
+    position: relative;
+    /* border-radius: 50px; */
+
+}
+
+.social-media-banner {
+  margin: auto;
+  width: 75%;
+  padding-top: 1em;
+  float: bottom;
+}
+
+.social-media-banner img {
+  height: 1.5em;
+  width: 1.5em;
+}
+
+.social-media-banner img:hover {
+  height: 1.5em;
+  width: 1.5em;
+}
+
+
+/* .social-media-banner li:hover {
+  padding: 1em;
+  background-color: white;
+
+} */
+
+/* .page-container {
+  padding: 1em;
+  background-color: white;
+
+} */
+
+
+
+/*  #####  SUBMIT BEAT FORM STYLES  ##### */
+
+/* .submit-beat-container {
+  margin-top: 1em;
+  position: absolute;
+  top: 15%;
+  left: 25%;
+  /* margin: -auto%; */
+  /* display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width:60em;
+} */ 
+  
