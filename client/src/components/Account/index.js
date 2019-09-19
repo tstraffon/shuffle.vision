@@ -44,7 +44,7 @@ const getRandomPhrases = (allData = null, count) => {
 
 
 
-class Home extends Component {
+class Account extends Component {
 
     constructor(props) {
         super(props);
@@ -58,14 +58,14 @@ class Home extends Component {
 
     shuffle = async (settings) => {
         const { sessionCount, sessionPlaylists } = settings;
-        console.log('[home] shuffle inputs', {settings})
+        console.log('[account] shuffle inputs', {settings})
         let { data } = await axios.get('/api/sessionplaylistphrases', {
             params: {
                 memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
                 playlists: sessionPlaylists,
             }
         }); 
-        console.log('[home] shuffle new data', {data})
+        console.log('[account] shuffle new data', {data})
   
         const displayData = getRandomPhrases(data, sessionCount)
         this.setState({ displayData });
@@ -76,29 +76,29 @@ class Home extends Component {
     async componentDidMount() {
         try{
             const { sessionCount, sessionPlaylists }= this.props;
-            console.log("[home]", sessionCount, sessionPlaylists)
+            console.log("[account]", sessionCount, sessionPlaylists)
             let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
                 params: {
                     memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
                     playlists: sessionPlaylists,
                 }
             });            
-            console.log("[home] phrase data", phrases);
+            console.log("[account] phrase data", phrases);
 
             let { data:allPlaylists } = await axios.get('/api/allplaylists', {
                 params: {
                     memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
                 }
             });             
-            console.log("[home] allPlaylists", allPlaylists);
+            console.log("[account] allPlaylists", allPlaylists);
             const displayData = getRandomPhrases(phrases, sessionCount); 
-            console.log("[home] displayData", displayData);
+            console.log("[account] displayData", displayData);
             const sessionSettings = {
                 sessionCount,
                 sessionPlaylists,
                 allPlaylists,
             }
-            console.log("[home] sessionSettings", sessionSettings);
+            console.log("[account] sessionSettings", sessionSettings);
             this.setState({ displayData, sessionSettings, loading: false });
         } catch (err) {
             throw Error (err);
@@ -118,7 +118,7 @@ class Home extends Component {
                 <Grid container spacing={2} justify="center"  className={classes.buttonContainer}>
                     <Grid item xs={2}>
                         <Button variant="contained" className={classes.shuffleButton} color="primary" onClick={() => { this.shuffle(sessionSettings); }} >
-                            Shuffle
+                            Account
                         </Button>
                     </Grid>
                 </Grid>
@@ -131,7 +131,7 @@ class Home extends Component {
 }
 
 
-// Home Redux Container
+// Account Redux Container
 const mapStateToProps = state => ({
     sessionCount: state.sessionCount,
     sessionPlaylists: state.sessionPlaylists,
@@ -143,14 +143,14 @@ const mapStateToProps = state => ({
 //   };
 // }
 
-const HomeContainer = connect(
+const AccountContainer = connect(
     mapStateToProps,
     // mapDispatchToProps,
-)(Home);
+)(Account);
 
 // apply class stylings
-Home.propTypes = {
+Account.propTypes = {
     classes: PropTypes.object.isRequired,
   };
 
-export default withStyles(styles)(HomeContainer); 
+export default withStyles(styles)(AccountContainer); 

@@ -5,12 +5,16 @@ import { withStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
 import { Link, Route, Switch } from 'react-router-dom';
+import Grid from '@material-ui/core/Grid';
 
 import { 
   Home, 
-  Profile,
+  Playlists,
+  Images,
+  Account,
   SignIn,
-  Sidebar,
+  NavMenu,
+  FilterMenu,
 } from "./components/index.js";
 
 
@@ -61,7 +65,7 @@ const styles = theme => ({
   appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
-    padding: theme.spacing.unit * 3,
+    paddingTop: theme.spacing.unit * 4,
     height: '100vh',
     overflow: 'auto',
   },
@@ -105,12 +109,22 @@ class App extends React.Component {
             >
             </AppBar>
             <main className={classes.content}>
-                <Sidebar />
-                <Switch>
-                <Route exact path ="/" render={()=> <Home/>}></Route>
-                <Route path="/profile/:memberId" render={()=> <Profile />} />
-                <Route path ="/signin" render={()=> <SignIn />}></Route> 
-                </Switch> 
+            <Grid container spacing={16} justify="center">
+                <Grid item xs={3}>
+                    <FilterMenu />
+                </Grid>
+                <Grid item xs={6}>
+                    <Switch>
+                        <Route exact path ="/" render={()=> <Home/>}></Route>
+                        <Route path ="/playlists" render={()=> <Playlists />}></Route> 
+                        <Route path="/images" render={()=> <Images />} />
+                        <Route path="/account" render={()=> <Account />} />
+                    </Switch> 
+                </Grid>
+                <Grid item xs={3}>
+                    <NavMenu />
+                </Grid>
+            </Grid>                
             </main>
         </React.Fragment>
 

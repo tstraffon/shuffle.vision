@@ -1,12 +1,19 @@
+
 import Home from "./Home/index.js";
+import Playlists from "./Playlists/index.js";
+import Images from "./Images/index.js";
+import Account from "./Account/index.js";
 import SignIn from "./SignIn/index.js";
-import Profile from "./Profile/index.js";
-import Sidebar from "./Sidebar/index.js";
+import NavMenu from "./Sidebars/NavMenu.js";
+import FilterMenu from "./Sidebars/FilterMenu";
 
 
 export{
     Home,
-    Profile,
+    Playlists,
+    Images,
+    Account,
     SignIn,
-    Sidebar,
+    NavMenu,
+    FilterMenu,
 };

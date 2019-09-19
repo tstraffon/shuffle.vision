@@ -2,7 +2,7 @@ exports.up = function (knex)
 {
     return knex.schema.createTable('phrase', function (t)
     {
-        t.uuid('id').primary('PK_Phrase');
+        t.increment('id');
         t.string('phrase');
         t.uuid('memberId');
         t.date('dateAdded');

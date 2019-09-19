@@ -44,7 +44,7 @@ const getRandomPhrases = (allData = null, count) => {
 
 
 
-class Home extends Component {
+class Playlist extends Component {
 
     constructor(props) {
         super(props);
@@ -58,14 +58,14 @@ class Home extends Component {
 
     shuffle = async (settings) => {
         const { sessionCount, sessionPlaylists } = settings;
-        console.log('[home] shuffle inputs', {settings})
+        console.log('[playlist] shuffle inputs', {settings})
         let { data } = await axios.get('/api/sessionplaylistphrases', {
             params: {
                 memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
                 playlists: sessionPlaylists,
             }
         }); 
-        console.log('[home] shuffle new data', {data})
+        console.log('[Playlist] shuffle new data', {data})
   
         const displayData = getRandomPhrases(data, sessionCount)
         this.setState({ displayData });
@@ -76,29 +76,29 @@ class Home extends Component {
     async componentDidMount() {
         try{
             const { sessionCount, sessionPlaylists }= this.props;
-            console.log("[home]", sessionCount, sessionPlaylists)
+            console.log("[playlist]", sessionCount, sessionPlaylists)
             let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
                 params: {
                     memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
                     playlists: sessionPlaylists,
                 }
             });            
-            console.log("[home] phrase data", phrases);
+            console.log("[playlist] phrase data", phrases);
 
             let { data:allPlaylists } = await axios.get('/api/allplaylists', {
                 params: {
                     memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
                 }
             });             
-            console.log("[home] allPlaylists", allPlaylists);
+            console.log("[playlist] allPlaylists", allPlaylists);
             const displayData = getRandomPhrases(phrases, sessionCount); 
-            console.log("[home] displayData", displayData);
+            console.log("[playlist] displayData", displayData);
             const sessionSettings = {
                 sessionCount,
                 sessionPlaylists,
                 allPlaylists,
             }
-            console.log("[home] sessionSettings", sessionSettings);
+            console.log("[playlist] sessionSettings", sessionSettings);
             this.setState({ displayData, sessionSettings, loading: false });
         } catch (err) {
             throw Error (err);
@@ -131,7 +131,7 @@ class Home extends Component {
 }
 
 
-// Home Redux Container
+// Playlist Redux Container
 const mapStateToProps = state => ({
     sessionCount: state.sessionCount,
     sessionPlaylists: state.sessionPlaylists,
@@ -143,14 +143,14 @@ const mapStateToProps = state => ({
 //   };
 // }
 
-const HomeContainer = connect(
+const PlaylistContainer = connect(
     mapStateToProps,
     // mapDispatchToProps,
-)(Home);
+)(Playlist);
 
 // apply class stylings
-Home.propTypes = {
+Playlist.propTypes = {
     classes: PropTypes.object.isRequired,
   };
 
-export default withStyles(styles)(HomeContainer); 
+export default withStyles(styles)(PlaylistContainer); 
