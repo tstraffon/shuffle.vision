@@ -2,12 +2,12 @@ exports.up = function (knex)
 {
     return knex.schema.createTable('phrase', function (t)
     {
-        t.increment('id');
+        t.uuid('id').primary('PK_Phrase');
         t.string('phrase');
-        t.uuid('memberId');
+        t.string('memberId');
         t.date('dateAdded');
         t.date('lastUpdated');
-        t.foreign('memberId', 'FK_MemberId').references('id').on('member').onUpdate('CASCADE').onDelete('CASCADE');
+        t.foreign('memberId', 'FK_MemberId').references('userName').on('member').onUpdate('CASCADE').onDelete('CASCADE');
     });
 };
 

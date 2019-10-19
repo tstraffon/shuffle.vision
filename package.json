@@ -2,7 +2,7 @@
   "name": "shuffle.vision",
   "version": "1.0.0",
   "engines": {
-    "node": "8.9.4"
+    "node": "10.16.3"
   },
   "description": "",
   "main": "server.js",
