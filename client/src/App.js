@@ -87,11 +87,6 @@ const styles = theme => ({
 });
 
 class App extends React.Component {
-  state = {
-    open: true,
-    beat:{},
-  };
-  
 
   render() {
     const { classes } = this.props;

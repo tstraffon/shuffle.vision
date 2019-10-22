@@ -55,7 +55,7 @@ class PhraseCard extends React.Component {
     if(loading){
       return(<div></div>);
     }
-
+    // console.log('[phrase-card] phrase', {phrase})
     return (
       
       <React.Fragment>
@@ -65,9 +65,9 @@ class PhraseCard extends React.Component {
                 <BeatCover beat={beat} showDetails={showDetails} playBeat={this.playBeat}/>
                 </CardContent> */}
                 <CardContent className={classes.cardContent}>
-                <Typography className={classes.label}>
-                    {phrase.phrase}
-                </Typography>
+                  <Typography className={classes.label}>
+                      {phrase.phrase}
+                  </Typography>
                 </CardContent>
                 {/* <CardActions >
                 <Button size="large" color="secondary" className={classes.addToCartButton} onClick={this.addToCartClick}>

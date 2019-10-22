@@ -14,6 +14,9 @@ const styles = theme => ({
         display: 'block',
         // marginLeft: '10%',
         fontSize: '1.25em',
+        displayData: [], 
+        sessionSettings: {}, 
+        phrases:[],
     },
 });
 
@@ -21,24 +24,34 @@ const getRandomInt = (max) => {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-const getRandomPhrases = (allData = null, count) => {
-    let randomPhrases=[], used=[];
+const getRandomPhrases = (phrases = null, count) => {
+    let randomPhrases=[], usedPhrases=[];
 
-    if(!allData){
-        allData = this.state.allData;
+    if(!phrases){
+        phrases = this.state.phrases;
     }
 
-    for(var i=0; i < count; i++){
+    if(phrases.length < 1){
+        console.error('No phrases found');
+        return;
+    }
+    
+    for(var i=0; i < count;){
+        // console.log('[home] randomPhrases count, i', count, i)
+
+        let randomIndex = getRandomInt(phrases.length - 1);
         
-        let randomIndex = getRandomInt(allData.length - 1);
-        
-        if(used.includes(randomIndex)){
-            i--;
+        if(usedPhrases.includes(randomIndex)){
+            // console.log('[home] phrase already usedPhrases', usedPhrases, randomIndex)
         } else {
-            used.push(randomIndex);
-            randomPhrases.push(allData[randomIndex]);
+            // console.log('[home] pushing new phrase', phrases[randomIndex])
+            usedPhrases.push(randomIndex);
+            randomPhrases.push(phrases[randomIndex]);
         }
+        i = randomPhrases.length;
     }
+    // console.log('[home] randomPhrases', {randomPhrases})
+
     return randomPhrases
 }
 
@@ -61,13 +74,15 @@ class Home extends Component {
         console.log('[home] shuffle inputs', {settings})
         let { data } = await axios.get('/api/sessionplaylistphrases', {
             params: {
-                memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
+                memberId: "sly",
                 playlists: sessionPlaylists,
             }
         }); 
         console.log('[home] shuffle new data', {data})
   
         const displayData = getRandomPhrases(data, sessionCount)
+        // const displayData = data
+
         this.setState({ displayData });
     }
 
@@ -77,9 +92,10 @@ class Home extends Component {
         try{
             const { sessionCount, sessionPlaylists }= this.props;
             console.log("[home]", sessionCount, sessionPlaylists)
+
             let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
                 params: {
-                    memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
+                    memberId: "sly",
                     playlists: sessionPlaylists,
                 }
             });            
@@ -87,11 +103,13 @@ class Home extends Component {
 
             let { data:allPlaylists } = await axios.get('/api/allplaylists', {
                 params: {
-                    memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
+                    memberId: "sly",
                 }
-            });             
+            });  
+                       
             console.log("[home] allPlaylists", allPlaylists);
-            const displayData = getRandomPhrases(phrases, sessionCount); 
+            const displayData = getRandomPhrases(phrases, sessionCount)
+            // const displayData = phrases            
             console.log("[home] displayData", displayData);
             const sessionSettings = {
                 sessionCount,
@@ -99,7 +117,7 @@ class Home extends Component {
                 allPlaylists,
             }
             console.log("[home] sessionSettings", sessionSettings);
-            this.setState({ displayData, sessionSettings, loading: false });
+            this.setState({ displayData, sessionSettings, phrases, loading: false });
         } catch (err) {
             throw Error (err);
         }
@@ -115,7 +133,7 @@ class Home extends Component {
         
         return(
             <div >
-                <Grid container spacing={2} justify="center"  className={classes.buttonContainer}>
+                <Grid container spacing={8} justify="center"  className={classes.buttonContainer}>
                     <Grid item xs={2}>
                         <Button variant="contained" className={classes.shuffleButton} color="primary" onClick={() => { this.shuffle(sessionSettings); }} >
                             Shuffle

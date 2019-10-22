@@ -3,29 +3,13 @@ import Slider from '@material-ui/core/Slider';
 import PropTypes from 'prop-types';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { withStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Button from '@material-ui/core/Button';
 import Slide from '@material-ui/core/Slide';
-import Card from '@material-ui/core/Card';
-import Input from '@material-ui/core/Input';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import FilledInput from '@material-ui/core/FilledInput';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Chip from '@material-ui/core/Chip';
-import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListSubheader from '@material-ui/core/ListSubheader';
-import FilterIcon from '@material-ui/icons/FilterList';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
@@ -33,6 +17,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { AddToSessionPlaylists } from '../../actions/index.js';
 import Typography from '@material-ui/core/Typography';
 import { connect } from 'react-redux';
+import axios from 'axios';
 
 
 
@@ -158,6 +143,10 @@ const styles = theme => ({
       noLabel: {
         marginTop: theme.spacing.unit * 6,
       },
+      nested: {
+        paddingTop: '0px',
+        paddingBottom: '0px'
+      }
 });
 
 const ITEM_HEIGHT = 48;
@@ -179,30 +168,12 @@ class FilterMenu extends Component {
 
     this.state = {
         loading: true,
-        showMenu: true,
+        showMenu: false,
         displayFormat: 'block',
+        allPlaylists: [],
+        memberPlaylists: [],
         sessionCount: 3,
         sessionPlaylists: ['First Playlist'],
-        allPlaylists: [
-          {
-            user:'Sly',
-            open: false,
-            playlists: [
-              'First Playlist',
-              '2nd Playlist', 
-              'Tres Plays'
-            ],
-          },
-          {
-            user:'dzul',
-            open: false,
-            playlists: [
-              'Numero Uno',
-              '#2', 
-              'Thr33'
-            ],
-          },
-        ],
         textFieldValue: '',
         genreFilterOpen: false,
         emotionFilterOpen: false,
@@ -210,71 +181,81 @@ class FilterMenu extends Component {
     };
   }
 
-    handleFilterClick = (filter, value) => {
-      switch (filter){
-        case "genres":
-          console.log(filter, value);
-          break;
-        case "emotions":
-          console.log(filter, value);
-          break;
-        case "producers":
-          console.log(filter, value);
-          break;
-        default:
-          break;
-      }
+    handleFilterClick = (memberPlaylists, memberIndex, playlistIndex ) => {
+      const currentPlaylistState = memberPlaylists[memberIndex].playlists[playlistIndex].checked;
+      memberPlaylists[memberIndex].playlists[playlistIndex].checked = !currentPlaylistState;
+
+      this.setState({ memberPlaylists });
     };
   
-    toggleFilters = (filter) => {
-      switch (filter){
-        case "genres":
-          this.setState(state => ({ genreFilterOpen: !state.genreFilterOpen }));
-          break;
-        case "emotions":
-          this.setState(state => ({ emotionFilterOpen: !state.emotionFilterOpen }));
-          break;
-        case "producers":
-          this.setState(state => ({ producerFilterOpen: !state.producerFilterOpen }));
-          break;
-        default:
-          break;
-      }
+    toggleFilters = (memberPlaylists, memberIndex) => {
+
+      const currentPlaylistState = memberPlaylists[memberIndex].showPlaylists;
+      memberPlaylists[memberIndex].showPlaylists = !currentPlaylistState;
+
+      this.setState({ memberPlaylists });
     };
 
-    toggleMenu = () => {     
-        const currentState = this.state.showMenu;
-        // this.setState({ showMenu: !currentState });
+    toggleMenuTrue = () => {     
+        this.setState({ showMenu: true });
+    };
+
+    toggleMenuFalse = () => {     
+      this.setState({ showMenu: false });
     };
 
     async componentDidMount() {
-        const { sessionCount, sessionPlaylists } = this.props;
-        console.log("[settings] setting props", sessionCount, sessionPlaylists);
 
-        this.setState({
-            sessionCount,
-            sessionPlaylists,
-            loading: false
-        })
+      const { data:allPlaylists } = await axios.get('/api/allPlaylists'); 
+
+      console.log("[filter-menu] componentDidMount allPlaylists", allPlaylists);
+      const memberPlaylists = [];
+
+      for (const p of allPlaylists){
+        const memberObj = memberPlaylists.find((member, i) => { return p.memberId === member.memberId });
+
+        if(!memberObj){
+          const newMember = {
+            memberId: p.memberId,
+            showPlaylists: false,
+            playlists:[{
+              name: p.name,
+              checked: true
+            }]
+          }
+          memberPlaylists.push(newMember)
+        } else {
+          memberObj.playlists.push({name: p.name, checked: true});
+        }
       }
 
+      console.log("[filter-menu] memberPlaylists", memberPlaylists);
+
+      this.setState({
+        sessionCount: 3,
+        allPlaylists,
+        memberPlaylists,
+        loading: false
+      })
+    }
+
     handleDisplayFormatChange = (event) => {
-        console.log("[settings] displayFormat change", event.target.value);
+        console.log("[filter-menu] displayFormat change", event.target.value);
         this.setState({ displayFormat: event.target.value });
     }
     
     handleCountSliderChange = (event, value) => {
-        console.log("[settings] count change", value);
+        console.log("[filter-menu] count change", value);
         this.setState({ sessionCount: value });
     }
 
     handleCountTextFieldChange = (event) => {
-      console.log("[settings] txtField count change", event.target.value);
+      console.log("[filter-menu] txtField count change", event.target.value);
       this.setState({ sessionCount: event.target.value });
   }
 
     handlePlaylistChange = (event) => { 
-        console.log("[settings] playlist change", event.target.value);
+        console.log("[filter-menu] playlist change", event.target.value);
         this.setState({ selectedPlaylists: event.target.value })
     }
 
@@ -287,35 +268,36 @@ class FilterMenu extends Component {
         };
     }
 
-    addToSessionPlaylists = (playlistId) => {
-        this.props.AddToSessionPlaylists(this.props.playlistId);
+    addToSessionPlaylists = (playlist) => {
+        this.props.AddToSessionPlaylists(this.props.playlist);
     }
+
 
   render() {
     const { classes } = this.props;
-    const { loading, showMenu, displayFormat, sessionCount, sessionPlaylists, allPlaylists, genreFilterOpen, emotionFilterOpen, producerFilterOpen } = this.state;
-    console.log('[filter-menu] allPlaylists', allPlaylists);
-    console.log('[filter-menu] sessionPlaylists', sessionPlaylists);
+    const { loading, showMenu, displayFormat, sessionCount, memberPlaylists, allPlaylists, genreFilterOpen, emotionFilterOpen, producerFilterOpen } = this.state;
+
 
     if(loading){
       return(<div></div>);
     }
-
+    console.log('[filter-menu] memberPlaylists', memberPlaylists);
+    // console.log('[filter-menu] sessionPlaylists', sessionPlaylists);
     return (
 
-      <div className={classes.menuContainer} onMouseEnter={this.toggleMenu} onMouseLeave={this.toggleMenu}>
+      <div className={classes.menuContainer} onMouseEnter={this.toggleMenuTrue} onMouseLeave={this.toggleMenuFalse}>
           <CssBaseline />
           <Slide direction="right" in={showMenu} mountOnEnter unmountOnExit>
             <div >
               
-              <Grid container spacing={2}>
-                <Grid item key={'output-style-filler'} sm={2}>
+              <Grid container spacing={0}>
+                <Grid item key={'card-title'} sm={2}>
                 {/* <Typography id="playlist-select" gutterBottom>Format</Typography> */}
                 </Grid>
-                <Grid item key={'output-style-select'} sm={2}>
-                  <Typography id="cards-displayFormat" className={classes.displayFormatLabel} gutterBottom>Cards</Typography>
+                <Grid item key={'card-count-title'} sm={2}>
+                  <Typography id="card-count-title-item" className={classes.displayFormatLabel} gutterBottom>Cards</Typography>
                 </Grid>
-                <Grid item key={'output-style-select'} sm={2}>
+                <Grid item key={'card-count-radio'} sm={2}>
                   <Radio
                     checked={displayFormat === 'cards'}
                     onChange={this.handleDisplayFormatChange}
@@ -324,10 +306,10 @@ class FilterMenu extends Component {
                     inputProps={{ 'aria-label': 'A' }}
                   />
                 </Grid>
-                <Grid item key={'output-style-select'} sm={2}>
-                  <Typography id="cards-displayFormat" className={classes.displayFormatLabel} gutterBottom>Block</Typography>
+                <Grid item key={'block-title'} sm={2}>
+                  <Typography id="block-title-item" className={classes.displayFormatLabel} gutterBottom>Block</Typography>
                 </Grid>
-                <Grid item key={'output-style-select'} sm={2}>
+                <Grid item key={'block-radio'} sm={2}>
                   <Radio
                     checked={displayFormat === 'block'}
                     onChange={this.handleDisplayFormatChange}
@@ -336,9 +318,9 @@ class FilterMenu extends Component {
                     inputProps={{ 'aria-label': 'B' }}
                   />
                 </Grid>
-                <Grid item key={'count-input'} sm={12}>
+                <Grid item key={'card-count-select'} sm={12}>
                     <Grid container spacing={2}>
-                      <Grid item key={'count-slider-input'} sm={9}>
+                      <Grid item key={'card-count-slider'} sm={9}>
                       <Typography id="discrete-slider" gutterBottom>Card Count</Typography>
                         <Slider
                           value={sessionCount}
@@ -365,22 +347,22 @@ class FilterMenu extends Component {
                   {/* <FormControl className={classes.formControl}> */}
                   <List>
                     <Typography id="playlist-select" gutterBottom>Playlists</Typography>
-                      {allPlaylists.map(playlist => (
+                      {memberPlaylists.map((member, memberIndex) => (
                         <div>
-                          <ListItem button onClick={() => { this.toggleFilters("genres"); }}>
-                            <ListItemText primary={playlist.user} />
-                            {playlist.open ? <ExpandLess /> : <ExpandMore />}
+                          <ListItem button onClick={() => { this.toggleFilters(memberPlaylists, memberIndex); }}>
+                            <ListItemText primary={member.memberId} />
+                            {member.showPlaylists ? <ExpandLess /> : <ExpandMore />}
                           </ListItem>
-                          <Collapse in={genreFilterOpen} timeout="auto" unmountOnExit>
+                          <Collapse in={member.showPlaylists} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
-                              {playlist.playlists.map(x => (
-                                <ListItem button className={classes.nested} onClick={() => { this.handleFilterClick(playlist, x); }}>
+                              {member.playlists.map((playlist, playlistIndex) => (
+                                <ListItem button className={classes.nested} onClick={() => { this.handleFilterClick(memberPlaylists, memberIndex, playlistIndex); }}>
                                   <Checkbox
-                                    checked={true}
+                                    checked={playlist.checked}
                                     // onChange={this.handleFilterClick('alternative')}
-                                    value={x}
+                                    value={playlist.name}
                                   />                  
-                                  <ListItemText inset primary={x} />
+                                  <ListItemText inset primary={playlist.name} />
                                 </ListItem>
                               ))}
                             </List>
@@ -398,7 +380,7 @@ class FilterMenu extends Component {
   }
 }
 
-// Settings Redux Container
+// filter-menu Redux Container
 const mapStateToProps = state => ({
     sessionCount: state.sessionCount,
     sessionPlaylists: state.sessionPlaylists,
@@ -406,7 +388,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => {
   return {
-    AddToSessionPlaylists: playlistId => dispatch(AddToSessionPlaylists(playlistId))
+    AddToSessionPlaylists: playlist => dispatch(AddToSessionPlaylists(playlist)),
+
   };
 }
 

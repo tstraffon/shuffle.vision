@@ -8,7 +8,7 @@ const moment = require('moment');
 // Returns phrases for the provided member/playlist combination 
 router.get('/sessionplaylistphrases', async (req, res, next) => {
     try {
-        console.log("[api] phrases req", req.query);
+        console.log("[api] sessionplaylistphrases req", req.query);
         const { playlists, memberId } = req.query;
         const result = await knex('phraseplaylist')
             .leftJoin('phrase','phraseplaylist.phraseId', 'phrase.id')
@@ -23,15 +23,29 @@ router.get('/sessionplaylistphrases', async (req, res, next) => {
     }
 });
 
-// Returns all phrases accessible by member for the provided member/playlist combination 
-router.get('/allplaylists', async (req, res, next) => {
+// Returns all playlists associated with the provided member
+router.get('/memberPlaylists', async (req, res, next) => {
     try {
-        console.log("[api] phrases req", req.query);
+        console.log("[api] memberPlaylists req", req.query);
         const { memberId } = req.query;
         const result = await knex('playlist')
             .select()
             .where('playlist.memberId', memberId)
-        // console.log("[api] phrases result", result);
+        res.send(result);
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+
+// Returns all playlists 
+router.get('/allPlaylists', async (req, res, next) => {
+    try {
+        console.log("[api] allplaylists req", req.query);
+        const result = await knex('playlist')
+            .select();
+            // console.log("[api] allplaylists result", {result});
         res.send(result);
     } catch (err) {
         next(err);
@@ -44,26 +58,34 @@ router.get('/addPhrase', async (req, res, next) => {
 
         console.log("[api] addPhrase req", req.query);
 
+        const { phrase, memberId, playlistId } = req.query;
 
-        const { phrase, memberId, playlists } = req.query;
         await knex.raw('create extension if not exists "uuid-ossp"');
         const {rows} = await knex.raw('SELECT uuid_generate_v1()');
-        const id = rows[0].uuid_generate_v1
-        console.log('[api] rows response', rows);
-        console.log('[api] id response', id);
+        const phraseId = rows[0].uuid_generate_v1
         knex.raw('drop extension if exists "uuid-ossp"');
         const now = moment();
-        const payload = {
-            id,
+        const phrasePayload = {
+            id: phraseId,
             phrase,
             memberId,
             dateAdded: now,
             lastUpdated: now,
         }
-        const result = await knex('phrase')
-            .insert(payload);
+        const phrasePlaylistPayload = {
+            phraseId,
+            playlistId,
+            memberId,
+            dateAdded: now,
+            lastUpdated: now,
+        }
+        const phraseResult = await knex('phrase')
+            .insert(phrasePayload);
+        const phrasePlaylistResult = await knex('phraseplaylist')
+            .insert(phrasePlaylistPayload);
+
         // console.log("[api] addPhrase result", result);
-        res.send(result);
+        res.send(phraseResult);
     } catch (err) {
         next(err);
     }

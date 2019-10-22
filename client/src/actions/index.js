@@ -1,6 +1,6 @@
-export const AddToSessionPlaylists = playlistId =>({
+export const AddToSessionPlaylists = playlist =>({
     type: 'ADD_TO_SESSION_PLAYLISTS',
-    playlistId
+    playlist
 });
 
 export const SelectCount = count =>({

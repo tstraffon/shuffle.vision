@@ -2,9 +2,13 @@ import React, {Component} from 'react';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import Reorder from '@material-ui/icons/PlaylistPlay';
-import Filter from '@material-ui/icons/Filter';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import PropTypes from 'prop-types';
+import Grid from '@material-ui/core/Grid';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { withStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
@@ -46,6 +50,9 @@ const styles = theme => ({
         marginLeft: theme.spacing.unit * 2,
         marginRight: theme.spacing.unit * 2,
     },
+    playlistSelect: {    
+        padding: theme.spacing.unit * 2,
+    },
     button:{
         width: '50%',
         margin: 'auto',
@@ -73,6 +80,9 @@ class NavMenu extends Component {
       addPhrase: false,
       textFieldValue: "",
       filterOpen: false,
+      selectedPlaylistId:"",
+      selectedPlaylistLabel:"",
+      memberPlaylists:[]
     };
   }
 
@@ -82,71 +92,125 @@ class NavMenu extends Component {
         });
     }
 
-    toggleMenu = () => {     
-        const currentState = this.state.showMenu;
-        this.setState({ showMenu: !currentState });
+    _handlePlaylistChange = e => {
+        const selectedPlaylist = this.state.memberPlaylists.find((x) => { return x.id === e.target.value; });
+        const id = selectedPlaylist.id
+        this.setState({ selectedPlaylist: id });
     };
 
-    toggleAddPhrase = () => {
-        const currentState = this.state.addPhrase;
-        this.setState({addPhrase: !currentState, textFieldValue:""});
+    toggleMenuTrue = () => {     
+        this.setState({ showMenu: true });
+    };
+
+    toggleMenuFalse = () => {     
+        this.setState({ showMenu: false });
+    };
+
+    toggleAddPhraseTrue = () => {
+        this.setState({addPhrase: true});
+    } 
+
+    toggleAddPhraseFalse = () => {
+        this.setState({addPhrase: false, textFieldValue:""});
     } 
 
     addPhrase = async () => {
-        const { textFieldValue } = this.state;
-        console.log('[addPhrase] adding new phrase to db', textFieldValue);
+        
+        const { textFieldValue, selectedPlaylist } = this.state;
 
         await axios.get('/api/addPhrase',{
             params: {
                 phrase: textFieldValue,
-                memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
-                playlistId: "7fc3d6ac-cccc-11e9-bea0-88e9fe785c3a",
+                memberId: "sly",
+                playlistId: selectedPlaylist,
             },
         }); 
         
-        const currentState = this.state.addPhrase;
+        this.setState({addPhrase: false, textFieldValue:""});
+    }  
 
-        this.setState({addPhrase: !currentState});
-    }          
+
 
     async componentDidMount() {
-        this.setState({loading: false})
+
+        const {data:memberPlaylists} = await axios.get('/api/memberPlaylists',{
+            params: {
+                memberId: "sly",
+            },
+        }); 
+
+        const selectedPlaylist = memberPlaylists[0].id
+        this.setState({loading: false, memberPlaylists, selectedPlaylist})
     }
 
   render() {
     const { classes, } = this.props;
-    const { loading, addPhrase, showMenu } = this.state;
+    const { loading, addPhrase, showMenu, textFieldValue, selectedPlaylist, memberPlaylists } = this.state;
     if(loading){
       return(<div></div>);
     }
 
     return (  
-        <div className={classes.menuContainer} onMouseEnter={this.toggleMenu} onMouseLeave={this.toggleMenu}>
+        <div className={classes.menuContainer} onMouseEnter={this.toggleMenuTrue} onMouseLeave={this.toggleMenuFalse}>
             <CssBaseline />
             <Slide direction="left" in={showMenu} mountOnEnter unmountOnExit>
                 <div>
-                    <Slide direction="left" in={addPhrase} mountOnEnter unmountOnExit>
-                        <Paper className={classes.paper}>
-                            <TextField
-                                id="outlined-uncontrolled"
-                                label="new phrase"
-                                value={this.state.textFieldValue} 
-                                onChange={this._handleTextFieldChange}                    
-                                className={classes.textField}
-                                margin="normal"
-                                variant="outlined"
-                            /> 
-                            <Button size="large" color="secondary" className={classes.button} onClick={this.addPhrase}>
-                                Submit
-                            </Button>
-                            <Button size="large" color="secondary" className={classes.button} onClick={this.toggleAddPhrase}>
-                                Cancel
-                            </Button>
-                        </Paper>
-                    </Slide>
+                        <Slide direction="left" in={addPhrase} mountOnEnter unmountOnExit>
+                            <Paper className={classes.paper}>
+                                <Grid container spacing={0}>
+                                    <Grid item key={"new-phrase-text-field"} sm={12}>
+                                        <TextField
+                                            id="outlined-uncontrolled"
+                                            label="new phrase"
+                                            value={textFieldValue} 
+                                            onChange={this._handleTextFieldChange}                    
+                                            className={classes.textField}
+                                            margin="normal"
+                                            variant="outlined"
+                                        /> 
+                                    </Grid>
+                                    <Grid item key={"new-phrase-playlist-select"} sm={12} className={classes.playlistSelect}>
+                                        {/* <InputLabel shrink htmlFor="playlist-select">Playlist</InputLabel>
+                                        <Select
+                                            value={selectedPlaylist}
+                                            onChange={this._handlePlaylistChange}
+                                            // inputProps={{
+                                            //     name: 'age',
+                                            //     id: 'age-label-placeholder',
+                                            // }}
+                                            displayEmpty
+                                            // name="selectedPlaylist"
+                                            className={classes.selectEmpty}
+                                        >
+                                            {memberPlaylists.map(playlist => (
+                                                <MenuItem value={playlist.name}>{playlist.name}</MenuItem>
+                                            ))}
+                                        </Select> */}
+                                        <FormLabel component="legend">Playlist</FormLabel>
+                                        <RadioGroup aria-label="playlist" name="playlist-select" value={selectedPlaylist} onChange={this._handlePlaylistChange}>
+                                            {memberPlaylists.map(playlist => (
+                                                // <Grid item key={"new-phrase-playlist-select"} sm={6}>
+                                                    <FormControlLabel value={playlist.id} control={<Radio />} label={playlist.name} />
+                                                // </Grid>
+                                            ))}
+                                        </RadioGroup>
+                                    </Grid>
+                                    {/* <Grid item key={"new-phrase-submit-button"} sm={6}> */}
+                                        <Button size="large" color="secondary" className={classes.button} onClick={this.addPhrase}>
+                                            Submit
+                                        </Button>
+                                    {/* </Grid>
+                                    <Grid item key={"new-phrase-cancel-button"} sm={6}> */}
+                                        <Button size="large" color="secondary" className={classes.button} onClick={this.toggleAddPhraseFalse}>
+                                            Cancel
+                                        </Button>
+                                    {/* </Grid> */}
+                                </Grid>
+                            </Paper>
+                        </Slide>
                     <div className={classes.fabContainer}>
                         <Slide direction="left" in={!addPhrase} mountOnEnter unmountOnExit>
-                            <Fab color="primary" aria-label="playlist" className={classes.fab} onClick={this.toggleAddPhrase}>
+                            <Fab color="primary" aria-label="playlist" className={classes.fab} onClick={this.toggleAddPhraseTrue}>
                                 <AddIcon />
                             </Fab>
                         </Slide>
