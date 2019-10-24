@@ -51,36 +51,36 @@ module.exports =
     },
     {
       "phraseId": "553437ba-cccc-11e9-bea0-88e9fe785c3a",
-      "playlistId": "7fc3d6ac-cccc-11e9-bea0-88e9fe785c3a",
+      "playlistId": "766bb2ff-e694-411c-9adf-8c3df3476af4",
       "memberId": "sly",
       "dateAdded": "9/1/2019",
       "lastUpdated": "9/1/2019"
     },
     {
       "phraseId": "5ad54a7e-cccc-11e9-bea0-88e9fe785c3a",
-      "playlistId": "7fc3d6ac-cccc-11e9-bea0-88e9fe785c3a",
+      "playlistId": "766bb2ff-e694-411c-9adf-8c3df3476af4",
       "memberId": "sly",
       "dateAdded": "9/1/2019",
       "lastUpdated": "9/1/2019"
     },
     {
       "phraseId": "5f8ac9c2-cccc-11e9-bea0-88e9fe785c3a",
-      "playlistId": "7fc3d6ac-cccc-11e9-bea0-88e9fe785c3a",
+      "playlistId": "766bb2ff-e694-411c-9adf-8c3df3476af4",
       "memberId": "sly",
       "dateAdded": "9/1/2019",
       "lastUpdated": "9/1/2019"
     },
     {
       "phraseId": "64b158bc-cccc-11e9-bea0-88e9fe785c3a",
-      "playlistId": "7fc3d6ac-cccc-11e9-bea0-88e9fe785c3a",
-      "memberId": "sly",
+      "playlistId": "304e4965-6890-4342-bb13-1f7180cc85e0",
+      "memberId": "dzul",
       "dateAdded": "9/1/2019",
       "lastUpdated": "9/1/2019"
     },
     {
       "phraseId": "69cf28ba-cccc-11e9-bea0-88e9fe785c3a",
-      "playlistId": "7fc3d6ac-cccc-11e9-bea0-88e9fe785c3a",
-      "memberId": "sly",
+      "playlistId": "304e4965-6890-4342-bb13-1f7180cc85e0",
+      "memberId": "dzul",
       "dateAdded": "9/1/2019",
       "lastUpdated": "9/1/2019"
     }

@@ -6,16 +6,16 @@ const moment = require('moment');
 // GET THAT DATA BABY
 
 // Returns phrases for the provided member/playlist combination 
-router.get('/sessionplaylistphrases', async (req, res, next) => {
+router.get('/playlistPhrases', async (req, res, next) => {
     try {
-        console.log("[api] sessionplaylistphrases req", req.query);
-        const { playlists, memberId } = req.query;
+        console.log("[api] playlistPhrases req", req.query);
+        const { playlists, memberIds } = req.query;
         const result = await knex('phraseplaylist')
             .leftJoin('phrase','phraseplaylist.phraseId', 'phrase.id')
             .leftJoin('playlist', 'phraseplaylist.playlistId','playlist.id')
             .select()
-            .whereIn('playlist.name', playlists)
-            .andWhere('playlist.memberId', memberId)
+            .whereIn('playlist.id', playlists)
+            .whereIn('playlist.memberId', memberIds)
         // console.log("[api] phrases result", result);
         res.send(result);
     } catch (err) {

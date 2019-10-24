@@ -1,20 +1,22 @@
 //define the initial state
 const initialState = {
-    sessionCount: 3,   
-    sessionPlaylists: ["numero uno"],
+    cardCount: 3,   
+    playlists: [],
 }
 
 //define a reducer with an initialized state action
 function ShuffleVisionStore(state = initialState, action) {  
 
     switch (action.type){
-        case 'ADD_TO_SESSION_PLAYLISTS':
+        case 'ADD_TO_PLAYLISTS':
+            console.log('[shuffle-vision-store] adding new playlist(s) to store', action.playlist, state.playlists)
             return Object.assign({}, state, {
-                sessionPlaylists: state.sessionPlaylists.concat(action.playlist)
+                playlists: state.playlists.concat(action.playlist)
             });
-        case 'SELECT_COUNT':
+        case 'SELECT_CARD_COUNT':
+            console.log('[shuffle-vision-store] updating card count', action.cardCount)
             return Object.assign({}, state, {
-                count: action.count
+                cardCount: action.cardCount
             });
         default:
             console.log('[reducer] Action not recognized', action);

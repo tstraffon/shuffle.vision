@@ -22,24 +22,24 @@ const getRandomInt = (max) => {
 }
 
 const getRandomPhrases = (allData = null, count) => {
-    let randomPhrases=[], used=[];
+    // let randomPhrases=[], used=[];
 
-    if(!allData){
-        allData = this.state.allData;
-    }
+    // if(!allData){
+    //     allData = this.state.allData;
+    // }
 
-    for(var i=0; i < count; i++){
+    // for(var i=0; i < count; i++){
         
-        let randomIndex = getRandomInt(allData.length - 1);
+    //     let randomIndex = getRandomInt(allData.length - 1);
         
-        if(used.includes(randomIndex)){
-            i--;
-        } else {
-            used.push(randomIndex);
-            randomPhrases.push(allData[randomIndex]);
-        }
-    }
-    return randomPhrases
+    //     if(used.includes(randomIndex)){
+    //         i--;
+    //     } else {
+    //         used.push(randomIndex);
+    //         randomPhrases.push(allData[randomIndex]);
+    //     }
+    // }
+    // return randomPhrases
 }
 
 
@@ -75,31 +75,31 @@ class Account extends Component {
 
     async componentDidMount() {
         try{
-            const { sessionCount, sessionPlaylists }= this.props;
-            console.log("[account]", sessionCount, sessionPlaylists)
-            let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
-                params: {
-                    memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
-                    playlists: sessionPlaylists,
-                }
-            });            
-            console.log("[account] phrase data", phrases);
+            // const { sessionCount, sessionPlaylists }= this.props;
+            // console.log("[account]", sessionCount, sessionPlaylists)
+            // let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
+            //     params: {
+            //         memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
+            //         playlists: sessionPlaylists,
+            //     }
+            // });            
+            // console.log("[account] phrase data", phrases);
 
-            let { data:allPlaylists } = await axios.get('/api/allplaylists', {
-                params: {
-                    memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
-                }
-            });             
-            console.log("[account] allPlaylists", allPlaylists);
-            const displayData = getRandomPhrases(phrases, sessionCount); 
-            console.log("[account] displayData", displayData);
-            const sessionSettings = {
-                sessionCount,
-                sessionPlaylists,
-                allPlaylists,
-            }
-            console.log("[account] sessionSettings", sessionSettings);
-            this.setState({ displayData, sessionSettings, loading: false });
+            // let { data:allPlaylists } = await axios.get('/api/allplaylists', {
+            //     params: {
+            //         memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
+            //     }
+            // });             
+            // console.log("[account] allPlaylists", allPlaylists);
+            // const displayData = getRandomPhrases(phrases, sessionCount); 
+            // console.log("[account] displayData", displayData);
+            // const sessionSettings = {
+            //     sessionCount,
+            //     sessionPlaylists,
+            //     allPlaylists,
+            // }
+            // console.log("[account] sessionSettings", sessionSettings);
+            // this.setState({ displayData, sessionSettings, loading: false });
         } catch (err) {
             throw Error (err);
         }

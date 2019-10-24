@@ -1,9 +1,9 @@
-export const AddToSessionPlaylists = playlist =>({
-    type: 'ADD_TO_SESSION_PLAYLISTS',
+export const AddToPlaylists = playlist =>({
+    type: 'ADD_TO_PLAYLISTS',
     playlist
 });
 
-export const SelectCount = count =>({
-    type: 'SELECT_COUNT',
-    count
+export const SelectCardCount = cardCount =>({
+    type: 'SELECT_CARD_COUNT',
+    cardCount
 });

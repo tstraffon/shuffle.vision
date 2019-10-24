@@ -22,24 +22,24 @@ const getRandomInt = (max) => {
 }
 
 const getRandomPhrases = (allData = null, count) => {
-    let randomPhrases=[], used=[];
+    // let randomPhrases=[], used=[];
 
-    if(!allData){
-        allData = this.state.allData;
-    }
+    // if(!allData){
+    //     allData = this.state.allData;
+    // }
 
-    for(var i=0; i < count; i++){
+    // for(var i=0; i < count; i++){
         
-        let randomIndex = getRandomInt(allData.length - 1);
+    //     let randomIndex = getRandomInt(allData.length - 1);
         
-        if(used.includes(randomIndex)){
-            i--;
-        } else {
-            used.push(randomIndex);
-            randomPhrases.push(allData[randomIndex]);
-        }
-    }
-    return randomPhrases
+    //     if(used.includes(randomIndex)){
+    //         i--;
+    //     } else {
+    //         used.push(randomIndex);
+    //         randomPhrases.push(allData[randomIndex]);
+    //     }
+    // }
+    // return randomPhrases
 }
 
 

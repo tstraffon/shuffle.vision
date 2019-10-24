@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import PhraseCardGrid from './PhraseCardGrid';
+import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-
+import { AddToPlaylists } from '../../actions/index.js';
 import axios from 'axios';
 import { connect } from 'react-redux';
 
@@ -25,25 +25,28 @@ const getRandomInt = (max) => {
 }
 
 const getRandomPhrases = (phrases = null, count) => {
-    let randomPhrases=[], usedPhrases=[];
+    let randomPhrases=[], usedPhrases=[], loopCount;
 
     if(!phrases){
         phrases = this.state.phrases;
     }
 
     if(phrases.length < 1){
-        console.error('No phrases found');
-        return;
+        console.error('[get-random-phrases] No phrases found');
+        return [];
+    }
+
+    if(phrases.length < count){
+        loopCount = phrases.length - 1;
+    } else {
+        loopCount = count;
     }
     
-    for(var i=0; i < count;){
-        // console.log('[home] randomPhrases count, i', count, i)
-
-        let randomIndex = getRandomInt(phrases.length - 1);
+    // loops through phrases and creates a random array with a length equal to card count
+    for(var i=0; i <= loopCount;){
+        let randomIndex = getRandomInt(phrases.length);
         
-        if(usedPhrases.includes(randomIndex)){
-            // console.log('[home] phrase already usedPhrases', usedPhrases, randomIndex)
-        } else {
+        if(!usedPhrases.includes(randomIndex)){
             // console.log('[home] pushing new phrase', phrases[randomIndex])
             usedPhrases.push(randomIndex);
             randomPhrases.push(phrases[randomIndex]);
@@ -51,7 +54,6 @@ const getRandomPhrases = (phrases = null, count) => {
         i = randomPhrases.length;
     }
     // console.log('[home] randomPhrases', {randomPhrases})
-
     return randomPhrases
 }
 
@@ -65,67 +67,91 @@ class Home extends Component {
             loading: true,
             data: [],
             displayData: [],
-            sessionSettings: {},
+            playlists: [],
+            cardCount: 3,
         }
     }
 
-    shuffle = async (settings) => {
-        const { sessionCount, sessionPlaylists } = settings;
-        console.log('[home] shuffle inputs', {settings})
-        let { data } = await axios.get('/api/sessionplaylistphrases', {
-            params: {
-                memberId: "sly",
-                playlists: sessionPlaylists,
-            }
-        }); 
-        console.log('[home] shuffle new data', {data})
-  
-        const displayData = getRandomPhrases(data, sessionCount)
-        // const displayData = data
-
-        this.setState({ displayData });
-    }
-
-
-
     async componentDidMount() {
         try{
-            const { sessionCount, sessionPlaylists }= this.props;
-            console.log("[home]", sessionCount, sessionPlaylists)
+            const { cardCount }= this.props;
+            console.log("[home]", cardCount)
 
-            let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
-                params: {
-                    memberId: "sly",
-                    playlists: sessionPlaylists,
-                }
-            });            
-            console.log("[home] phrase data", phrases);
-
-            let { data:allPlaylists } = await axios.get('/api/allplaylists', {
+            // on initial load retrieve all playlists created by signed in member
+            let { data:memberPlaylists } = await axios.get('/api/memberPlaylists', {
                 params: {
                     memberId: "sly",
                 }
             });  
-                       
-            console.log("[home] allPlaylists", allPlaylists);
-            const displayData = getRandomPhrases(phrases, sessionCount)
-            // const displayData = phrases            
-            console.log("[home] displayData", displayData);
-            const sessionSettings = {
-                sessionCount,
-                sessionPlaylists,
-                allPlaylists,
-            }
-            console.log("[home] sessionSettings", sessionSettings);
-            this.setState({ displayData, sessionSettings, phrases, loading: false });
+            this.props.AddToPlaylists(memberPlaylists);
+
+
+            // function retrieves phrases from memberPlaylists and sets state
+            this.getPhrases(memberPlaylists, cardCount);
+
         } catch (err) {
             throw Error (err);
         }
     }
+
+
+    componentWillReceiveProps(nextProps) {
+        const { cardCount:newCardCount, playlists:newPlaylists } = nextProps;
+        const { cardCount:oldCardCount, selectedPlaylists:oldPlaylists, allPhrases} = this.state;
+
+        console.log('[home] nextProps', {nextProps});
+        if (newPlaylists !== oldPlaylists && newCardCount !== oldCardCount) {
+            console.log('[home] new playlist, new cardCount');
+            this.getPhrases(newPlaylists, newCardCount);
+        } else if (newPlaylists !== oldPlaylists && newCardCount === oldCardCount) {
+            console.log('[home] new playlist, old cardCount');
+            this.getPhrases(newPlaylists, oldCardCount);
+        } else if (newPlaylists === oldPlaylists && newCardCount !== oldCardCount) {
+            console.log('[home] old playlist, new cardCount');
+            const displayedPhrases =  getRandomPhrases(allPhrases, newCardCount);
+            console.log('[home] new cardCount phrases');
+            this.setState({ displayedPhrases, cardCount: newCardCount });
+        } else {
+            console.log('[home] old playlist, old cardCount', newCardCount, newPlaylists, oldCardCount, oldPlaylists);
+        }
+    }
+
+
+    shuffle = (cardCount, phrases) => {
+        console.log('[home] shuffle inputs', {cardCount, phrases})
+        // create a new array of random phrases with a length matching store card count
+        const displayedPhrases = getRandomPhrases(phrases, cardCount)
+        this.setState({ displayedPhrases });
+    }
+
+    getPhrases = async (selectedPlaylists, cardCount) =>{
+
+            // create an array of just playlist Ids and add each playlist to the store
+            let memberIds = [], playlists = [];
+            for(const p of selectedPlaylists){
+                !memberIds.includes(p.memberId)? memberIds.push(p.memberId) : null
+                playlists.push(p.id);
+            }
+
+            // get all phrases from selected playlists
+            let { data:allPhrases } = await axios.get('/api/playlistPhrases', {
+                params: {
+                    memberIds: memberIds,
+                    playlists: playlists,
+                }
+            });            
+            console.log("[home] all phrase data", allPhrases);
+
+            // create array of random phrases with a length matching store card count
+            const displayedPhrases = getRandomPhrases(allPhrases, cardCount)
+            console.log("[home] displayed phrases", displayedPhrases);
+
+            this.setState({ displayedPhrases, cardCount, selectedPlaylists, playlists, allPhrases, loading: false });
+    }
     
     render(){
         const { classes } = this.props;
-        const { loading, displayData, sessionSettings } = this.state
+        const { loading, displayedPhrases, cardCount, allPhrases } = this.state
 
         if(loading){
             return(<div></div>);
@@ -135,12 +161,12 @@ class Home extends Component {
             <div >
                 <Grid container spacing={8} justify="center"  className={classes.buttonContainer}>
                     <Grid item xs={2}>
-                        <Button variant="contained" className={classes.shuffleButton} color="primary" onClick={() => { this.shuffle(sessionSettings); }} >
+                        <Button variant="contained" className={classes.shuffleButton} color="primary" onClick={() => { this.shuffle(cardCount, allPhrases); }} >
                             Shuffle
                         </Button>
                     </Grid>
                 </Grid>
-                <PhraseCardGrid data={displayData} />
+                <PhraseCardGrid data={displayedPhrases} />
             </div>
         );
 
@@ -151,19 +177,19 @@ class Home extends Component {
 
 // Home Redux Container
 const mapStateToProps = state => ({
-    sessionCount: state.sessionCount,
-    sessionPlaylists: state.sessionPlaylists,
+    cardCount: state.cardCount,
+    playlists: state.playlists,
   });
 
-// const mapDispatchToProps = dispatch => {
-//   return {
-//     AddToCart: beatId => dispatch(AddToCart(beatId))
-//   };
-// }
+const mapDispatchToProps = dispatch => {
+  return {
+    AddToPlaylists: playlist => dispatch(AddToPlaylists(playlist))
+  };
+}
 
 const HomeContainer = connect(
     mapStateToProps,
-    // mapDispatchToProps,
+    mapDispatchToProps,
 )(Home);
 
 // apply class stylings

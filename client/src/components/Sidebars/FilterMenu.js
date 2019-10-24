@@ -14,7 +14,7 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import Checkbox from '@material-ui/core/Checkbox';
-import { AddToSessionPlaylists } from '../../actions/index.js';
+import { AddToPlaylists, SelectCardCount } from '../../actions/index.js';
 import Typography from '@material-ui/core/Typography';
 import { connect } from 'react-redux';
 import axios from 'axios';
@@ -169,11 +169,10 @@ class FilterMenu extends Component {
     this.state = {
         loading: true,
         showMenu: false,
-        displayFormat: 'block',
+        displayFormat: 'cards',
         allPlaylists: [],
         memberPlaylists: [],
-        sessionCount: 3,
-        sessionPlaylists: ['First Playlist'],
+        cardCount: 3,
         textFieldValue: '',
         genreFilterOpen: false,
         emotionFilterOpen: false,
@@ -181,107 +180,126 @@ class FilterMenu extends Component {
     };
   }
 
-    handleFilterClick = (memberPlaylists, memberIndex, playlistIndex ) => {
-      const currentPlaylistState = memberPlaylists[memberIndex].playlists[playlistIndex].checked;
-      memberPlaylists[memberIndex].playlists[playlistIndex].checked = !currentPlaylistState;
+  async componentDidMount() {
 
-      this.setState({ memberPlaylists });
-    };
-  
-    toggleFilters = (memberPlaylists, memberIndex) => {
+    const { data:allPlaylists } = await axios.get('/api/allPlaylists'); 
 
-      const currentPlaylistState = memberPlaylists[memberIndex].showPlaylists;
-      memberPlaylists[memberIndex].showPlaylists = !currentPlaylistState;
+    console.log("[filter-menu] componentDidMount allPlaylists", allPlaylists);
+    const memberPlaylists = [];
 
-      this.setState({ memberPlaylists });
-    };
+    for (const p of allPlaylists){
+      const memberObj = memberPlaylists.find((member, i) => { return p.memberId === member.memberId });
 
-    toggleMenuTrue = () => {     
-        this.setState({ showMenu: true });
-    };
-
-    toggleMenuFalse = () => {     
-      this.setState({ showMenu: false });
-    };
-
-    async componentDidMount() {
-
-      const { data:allPlaylists } = await axios.get('/api/allPlaylists'); 
-
-      console.log("[filter-menu] componentDidMount allPlaylists", allPlaylists);
-      const memberPlaylists = [];
-
-      for (const p of allPlaylists){
-        const memberObj = memberPlaylists.find((member, i) => { return p.memberId === member.memberId });
-
-        if(!memberObj){
-          const newMember = {
-            memberId: p.memberId,
-            showPlaylists: false,
-            playlists:[{
-              name: p.name,
-              checked: true
-            }]
-          }
-          memberPlaylists.push(newMember)
-        } else {
-          memberObj.playlists.push({name: p.name, checked: true});
+      if(!memberObj){
+        const newMember = {
+          memberId: p.memberId,
+          showPlaylists: false,
+          playlists:[{
+            name: p.name,
+            checked: p.memberId === 'sly' ? true : false
+          }]
         }
+        memberPlaylists.push(newMember)
+      } else {
+        memberObj.playlists.push({name: p.name, checked: p.memberId === 'sly' ? true : false });
       }
-
-      console.log("[filter-menu] memberPlaylists", memberPlaylists);
-
-      this.setState({
-        sessionCount: 3,
-        allPlaylists,
-        memberPlaylists,
-        loading: false
-      })
     }
 
-    handleDisplayFormatChange = (event) => {
-        console.log("[filter-menu] displayFormat change", event.target.value);
-        this.setState({ displayFormat: event.target.value });
-    }
-    
-    handleCountSliderChange = (event, value) => {
-        console.log("[filter-menu] count change", value);
-        this.setState({ sessionCount: value });
-    }
+    console.log("[filter-menu] memberPlaylists", memberPlaylists);
 
-    handleCountTextFieldChange = (event) => {
-      console.log("[filter-menu] txtField count change", event.target.value);
-      this.setState({ sessionCount: event.target.value });
+    this.setState({
+      allPlaylists,
+      memberPlaylists,
+      loading: false
+    })
   }
 
-    handlePlaylistChange = (event) => { 
-        console.log("[filter-menu] playlist change", event.target.value);
-        this.setState({ selectedPlaylists: event.target.value })
+
+  toggleSelectPlaylist = (memberPlaylists, memberIndex, playlistIndex ) => {
+    const currentPlaylistState = memberPlaylists[memberIndex].playlists[playlistIndex].checked;
+    memberPlaylists[memberIndex].playlists[playlistIndex].checked = !currentPlaylistState;
+
+    const { allPlaylists } = this.state;
+    const playlist = allPlaylists.find((p, i) => { return p.name === memberPlaylists[memberIndex].playlists[playlistIndex].name });
+    console.log("[filter-menu] toggledPlaylist", playlist);
+
+    if(!currentPlaylistState){
+      console.log("[filter-menu] new playlist selected", playlist);
+      this.props.AddToPlaylists(playlist);
+    } else {
+      // add remove playlist function here
+      console.log("[filter-menu] playlist deselected", playlist);
     }
 
-    getStyles = (name, personName, theme) => {
-        return {
-          fontWeight:
-            personName.indexOf(name) === -1
-              ? theme.typography.fontWeightRegular
-              : theme.typography.fontWeightMedium,
-        };
-    }
+    this.setState({ memberPlaylists });
+  };
 
-    addToSessionPlaylists = (playlist) => {
-        this.props.AddToSessionPlaylists(this.props.playlist);
-    }
+  toggleShowMemberPlaylists = (memberPlaylists, memberIndex) => {
+
+    const currentPlaylistState = memberPlaylists[memberIndex].showPlaylists;
+    memberPlaylists[memberIndex].showPlaylists = !currentPlaylistState;
+
+    this.setState({ memberPlaylists });
+  };
+
+  toggleMenuTrue = () => {     
+      this.setState({ showMenu: true });
+  };
+
+  toggleMenuFalse = () => {     
+    this.setState({ showMenu: false });
+  };
+
+
+
+  handleDisplayFormatChange = (event) => {
+    // console.log("[filter-menu] displayFormat change", event.target.value);
+    this.setState({ displayFormat: event.target.value });
+  }
+  
+  handleCountSliderChange = (event, value) => {
+    // console.log("[filter-menu] count change", value);
+    this.setState({ cardCount: value });
+  }
+
+  handleSliderComittedChange = (event, value) => {
+    // console.log("[filter-menu] adding new count to store", value);
+    this.props.SelectCardCount(value);
+  }
+
+  handleCountTextFieldChange = (event) => {
+    // console.log("[filter-menu] txtField count change", event.target.value);
+    this.setState({ cardCount: event.target.value });
+  }
+
+  handlePlaylistChange = (event) => { 
+    // console.log("[filter-menu] playlist change", event.target.value);
+    this.setState({ selectedPlaylists: event.target.value })
+  }
+
+  getStyles = (name, personName, theme) => {
+      return {
+        fontWeight:
+          personName.indexOf(name) === -1
+            ? theme.typography.fontWeightRegular
+            : theme.typography.fontWeightMedium,
+      };
+  }
+
+  AddToPlaylists = (playlist) => {
+      this.props.AddToPlaylists(this.props.playlist);
+  }
 
 
   render() {
     const { classes } = this.props;
-    const { loading, showMenu, displayFormat, sessionCount, memberPlaylists, allPlaylists, genreFilterOpen, emotionFilterOpen, producerFilterOpen } = this.state;
+    const { loading, showMenu, displayFormat, cardCount, memberPlaylists} = this.state;
 
 
     if(loading){
       return(<div></div>);
     }
-    console.log('[filter-menu] memberPlaylists', memberPlaylists);
+    // console.log('[filter-menu] memberPlaylists', memberPlaylists);
     // console.log('[filter-menu] sessionPlaylists', sessionPlaylists);
     return (
 
@@ -323,11 +341,12 @@ class FilterMenu extends Component {
                       <Grid item key={'card-count-slider'} sm={9}>
                       <Typography id="discrete-slider" gutterBottom>Card Count</Typography>
                         <Slider
-                          value={sessionCount}
+                          value={cardCount}
                           // aria-labelledby="discrete-slider"
                           // valueLabelDisplay="auto"
                           step={1}
                           onChange={this.handleCountSliderChange}
+                          onChangeCommitted={this.handleSliderComittedChange}
                           min={1}
                           max={50}
                         />
@@ -336,7 +355,7 @@ class FilterMenu extends Component {
                         <TextField
                           id="count-text-field"
                           className={classes.countTextField}
-                          value={sessionCount}
+                          value={cardCount}
                           onChange={this.handleCountTextFieldChange}
                           inputProps={{ 'aria-label': 'bare' }}
                         />
@@ -349,17 +368,16 @@ class FilterMenu extends Component {
                     <Typography id="playlist-select" gutterBottom>Playlists</Typography>
                       {memberPlaylists.map((member, memberIndex) => (
                         <div>
-                          <ListItem button onClick={() => { this.toggleFilters(memberPlaylists, memberIndex); }}>
+                          <ListItem button onClick={() => { this.toggleShowMemberPlaylists(memberPlaylists, memberIndex); }}>
                             <ListItemText primary={member.memberId} />
                             {member.showPlaylists ? <ExpandLess /> : <ExpandMore />}
                           </ListItem>
                           <Collapse in={member.showPlaylists} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
                               {member.playlists.map((playlist, playlistIndex) => (
-                                <ListItem button className={classes.nested} onClick={() => { this.handleFilterClick(memberPlaylists, memberIndex, playlistIndex); }}>
+                                <ListItem button className={classes.nested} onClick={() => { this.toggleSelectPlaylist(memberPlaylists, memberIndex, playlistIndex); }}>
                                   <Checkbox
                                     checked={playlist.checked}
-                                    // onChange={this.handleFilterClick('alternative')}
                                     value={playlist.name}
                                   />                  
                                   <ListItemText inset primary={playlist.name} />
@@ -382,14 +400,14 @@ class FilterMenu extends Component {
 
 // filter-menu Redux Container
 const mapStateToProps = state => ({
-    sessionCount: state.sessionCount,
-    sessionPlaylists: state.sessionPlaylists,
+    cardCount: state.cardCount,
+    playlists: state.playlists,
   });
 
 const mapDispatchToProps = dispatch => {
   return {
-    AddToSessionPlaylists: playlist => dispatch(AddToSessionPlaylists(playlist)),
-
+    AddToPlaylists: playlist => dispatch(AddToPlaylists(playlist)),
+    SelectCardCount: cardCount => dispatch(SelectCardCount(cardCount)),
   };
 }
 

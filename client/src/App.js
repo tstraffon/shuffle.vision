@@ -6,6 +6,8 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
 import { Link, Route, Switch } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
+import axios from 'axios';
+
 
 import { 
   Home, 
@@ -88,8 +90,41 @@ const styles = theme => ({
 
 class App extends React.Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+        loading: true,
+        playlists: [],
+    }
+}
+
+  async componentDidMount() {
+    try{
+
+        // on initial load retrieve all playlists created by signed in member
+        let { data:playlists } = await axios.get('/api/memberPlaylists', {
+            params: {
+                memberId: "sly",
+            }
+        });  
+        
+        console.log("[app] playlists", playlists)
+
+        // function retrieves phrases from memberPlaylists and sets state
+        this.setState({ playlists, loading: false });
+
+    } catch (err) {
+        throw Error (err);
+    }
+  }
+
   render() {
     const { classes } = this.props;
+    const { playlists, loading } = this.state;
+
+    if(loading){
+      return(<div></div>);
+    }
 
     return (
 
@@ -110,7 +145,7 @@ class App extends React.Component {
                 </Grid>
                 <Grid item xs={6}>
                     <Switch>
-                        <Route exact path ="/" render={()=> <Home/>}></Route>
+                        <Route exact path ="/" render={(playlists)=> <Home playlists={playlists}/>}></Route>
                         <Route path ="/playlists" render={()=> <Playlists />}></Route> 
                         <Route path="/images" render={()=> <Images />} />
                         <Route path="/account" render={()=> <Account />} />
