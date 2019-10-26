@@ -5,7 +5,6 @@ import Images from "./Images/index.js";
 import Account from "./Account/index.js";
 import SignIn from "./SignIn/index.js";
 import NavMenu from "./Sidebars/NavMenu.js";
-import FilterMenu from "./Home/FilterMenu";
 
 
 export{
@@ -15,5 +14,4 @@ export{
     Account,
     SignIn,
     NavMenu,
-    FilterMenu,
 };

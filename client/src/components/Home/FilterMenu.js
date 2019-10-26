@@ -27,8 +27,9 @@ const styles = theme => ({
         margin: theme.spacing.unit,
       },
     menuContainer: {
-        width: '100%',
+        width: '90%',
         height: '100%',
+        borderRadius: '25px',
         // float: 'right',
         // margin: theme.spacing.unit * 2,
     },
@@ -313,8 +314,8 @@ class FilterMenu extends Component {
 
       <div className={classes.menuContainer} onMouseEnter={this.toggleMenuTrue} onMouseLeave={this.toggleMenuFalse}>
           <CssBaseline />
-          <Slide direction="right" in={showMenu} mountOnEnter unmountOnExit className={classes.slideContainer}>
-            <div >
+          {/* <Slide direction="right" in={showMenu} mountOnEnter unmountOnExit className={classes.slideContainer}> */}
+            <div className={classes.slideContainer} >
               
               <Grid container spacing={0}>
                 <Grid item key={'card-title'} sm={2}>
@@ -403,7 +404,7 @@ class FilterMenu extends Component {
                 </Grid>
               </Grid>
             </div>
-        </Slide>
+        {/* </Slide> */}
       </div>
 
     );

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import PhraseCardGrid from './PhraseCardGrid';
-import Button from '@material-ui/core/Button';
+import PlaylistList from './PlaylistList';
+import PhraseCardGrid from '../Home/PhraseCardGrid';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 
@@ -10,37 +10,18 @@ import { connect } from 'react-redux';
 
 
 const styles = theme => ({
-    shuffleButton: {
-        display: 'block',
-        // marginLeft: '10%',
-        fontSize: '1.25em',
+    playlistHeader: {
+        color: '#FFF',
+        fontSize: '2em',
+        textAlign: 'center'
+    },
+    playlistListContainer: {
+        width: '100%',
+        height: '100%',
+        // float: 'right',
+        // margin: theme.spacing.unit * 2,
     },
 });
-
-const getRandomInt = (max) => {
-    return Math.floor(Math.random() * Math.floor(max));
-}
-
-const getRandomPhrases = (allData = null, count) => {
-    // let randomPhrases=[], used=[];
-
-    // if(!allData){
-    //     allData = this.state.allData;
-    // }
-
-    // for(var i=0; i < count; i++){
-        
-    //     let randomIndex = getRandomInt(allData.length - 1);
-        
-    //     if(used.includes(randomIndex)){
-    //         i--;
-    //     } else {
-    //         used.push(randomIndex);
-    //         randomPhrases.push(allData[randomIndex]);
-    //     }
-    // }
-    // return randomPhrases
-}
 
 
 
@@ -50,56 +31,72 @@ class Playlist extends Component {
         super(props);
         this.state = {
             loading: true,
-            data: [],
-            displayData: [],
-            sessionSettings: {},
+            playlists: [],
+            phrasesByPlaylist: [],
+            selectedPlaylistPhrases: [],
+            member: 'sly',
+            currentPlaylist: ''
         }
     }
 
-    shuffle = async (settings) => {
-        const { sessionCount, sessionPlaylists } = settings;
-        console.log('[playlist] shuffle inputs', {settings})
-        let { data } = await axios.get('/api/sessionplaylistphrases', {
-            params: {
-                memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
-                playlists: sessionPlaylists,
-            }
-        }); 
-        console.log('[Playlist] shuffle new data', {data})
-  
-        const displayData = getRandomPhrases(data, sessionCount)
-        this.setState({ displayData });
+    selectPlaylist = (playlist) => {
+        const { phrasesByPlaylist } = this.state;
+        const selectedPlaylist = phrasesByPlaylist.find((x) => { return x.playlistId === playlist.id; })
+        const selectedPlaylistPhrases = selectedPlaylist.phrases;
+        this.setState({ currentPlaylist: playlist, selectedPlaylistPhrases });
     }
-
 
 
     async componentDidMount() {
         try{
-            const { sessionCount, sessionPlaylists }= this.props;
-            console.log("[playlist]", sessionCount, sessionPlaylists)
-            let { data:phrases } = await axios.get('/api/sessionplaylistphrases', {
+            // on initial load retrieve all playlists created by signed in member
+            let { data:allPhrases } = await axios.get('/api/memberPlaylistAndPhrases', {
                 params: {
-                    memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
-                    playlists: sessionPlaylists,
+                    memberId: "sly",
                 }
-            });            
-            console.log("[playlist] phrase data", phrases);
+            });  
 
-            let { data:allPlaylists } = await axios.get('/api/allplaylists', {
-                params: {
-                    memberId: "582731e4-cccb-11e9-bea0-88e9fe785c3a",
+            // create an array of just playlist Ids and add each playlist to the store
+            let playlists = [], phrasesByPlaylist = [];
+            for(const p of allPhrases){
+                const playlistObj = playlists.find((x) => { return x.id === p.playlistId; })
+
+                if(!playlistObj){
+                    const playlist = {
+                        id: p.playlistId,
+                        name: p.name
+                    }
+                    playlists.push(playlist);
                 }
-            });             
-            console.log("[playlist] allPlaylists", allPlaylists);
-            const displayData = getRandomPhrases(phrases, sessionCount); 
-            console.log("[playlist] displayData", displayData);
-            const sessionSettings = {
-                sessionCount,
-                sessionPlaylists,
-                allPlaylists,
+
+                const phraseByPlaylistObj = phrasesByPlaylist.find((x) => { return x.playlistId === p.playlistId; })
+
+                if(!phraseByPlaylistObj) {
+                    const newphraseByPlaylistObj = {
+                        playlistId: p.playlistId,
+                        phrases: [{
+                            id: p.phraseId,
+                            phrase: p.phrase
+                        }]
+                    }
+                    phrasesByPlaylist.push(newphraseByPlaylistObj)
+                } else {
+                    const newPhraseObj = {
+                        id: p.phraseId,
+                        phrase: p.phrase
+                    }
+                    phraseByPlaylistObj.phrases.push(newPhraseObj)
+                }
             }
-            console.log("[playlist] sessionSettings", sessionSettings);
-            this.setState({ displayData, sessionSettings, loading: false });
+
+            console.log("[playlist] playlists", playlists);
+            console.log("[playlist] phrasesByPlaylist", phrasesByPlaylist);
+
+            const currentPlaylist = playlists[0]
+            const selectedPlaylist = phrasesByPlaylist.find((x) => { return x.playlistId === currentPlaylist.id; })
+            const selectedPlaylistPhrases = selectedPlaylist.phrases;
+
+            this.setState({ playlists, loading: false, currentPlaylist, selectedPlaylistPhrases, phrasesByPlaylist });
         } catch (err) {
             throw Error (err);
         }
@@ -107,7 +104,7 @@ class Playlist extends Component {
     
     render(){
         const { classes } = this.props;
-        const { loading, displayData, sessionSettings } = this.state
+        const { loading, playlists, selectedPlaylistPhrases, currentPlaylist } = this.state
 
         if(loading){
             return(<div></div>);
@@ -115,19 +112,19 @@ class Playlist extends Component {
         
         return(
             <div >
-                <Grid container spacing={2} justify="center"  className={classes.buttonContainer}>
-                    <Grid item xs={2}>
-                        <Button variant="contained" className={classes.shuffleButton} color="primary" onClick={() => { this.shuffle(sessionSettings); }} >
-                            Shuffle
-                        </Button>
+                <Grid container spacing={0} justify="center">
+                    <Grid item xs={4} className={classes.playlistListContainer}>
+                        <h1 className={classes.playlistHeader}>Playlists</h1>
+                        <PlaylistList playlists={playlists} selectPlaylist={this.selectPlaylist} />
+                    </Grid>
+                    <Grid item xs={8}>
+                        <h1 className={classes.playlistHeader}>{currentPlaylist.name}</h1>
+                        <PhraseCardGrid data={selectedPlaylistPhrases} />
                     </Grid>
                 </Grid>
-                <PhraseCardGrid data={displayData} />
             </div>
         );
-
     }  
-
 }
 
 

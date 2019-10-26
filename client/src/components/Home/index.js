@@ -17,7 +17,6 @@ const styles = theme => ({
         margin: 'auto',
         fontSize: '1.25em',
         displayData: [], 
-        sessionSettings: {}, 
         phrases:[],
         selectedPlaylists: []
     },

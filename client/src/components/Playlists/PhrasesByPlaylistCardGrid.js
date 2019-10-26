@@ -41,7 +41,7 @@ class PhraseCardGrid extends React.Component {
   }
 
   render() {
-    console.log('[cardGrid] props', this.props);
+    // console.log('[cardGrid] props', this.props);
     const { classes, data } = this.props;
     const { loading } = this.state;
 
@@ -56,9 +56,10 @@ class PhraseCardGrid extends React.Component {
           <div className={classNames(classes.layout, classes.cardGrid)}>
             <Grid container spacing={40}>
               {data.map(phrase => (
+                
                 <Slide in={!loading} direction="up" style={{ transitionDelay: !loading ? '1000ms' : '0ms' }}>
                     <Grid item key={phrase.phraseId} sm={6} md={4} lg={4}>
-                    <PhraseCard phrase={phrase} />
+                      <PhraseCard phrase={phrase} />
                     </Grid>
                 </Slide>
               ))}

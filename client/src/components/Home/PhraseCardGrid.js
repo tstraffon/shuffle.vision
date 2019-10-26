@@ -41,7 +41,7 @@ class PhraseCardGrid extends React.Component {
   }
 
   render() {
-    // console.log('[cardGrid] props', this.props);
+    console.log('[cardGrid] props', this.props);
     const { classes, data } = this.props;
     const { loading } = this.state;
 

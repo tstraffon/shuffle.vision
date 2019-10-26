@@ -16,6 +16,25 @@ router.get('/playlistPhrases', async (req, res, next) => {
             .select()
             .whereIn('playlist.id', playlists)
             .whereIn('playlist.memberId', memberIds)
+            .orderBy('phrase')
+        // console.log("[api] phrases result", result);
+        res.send(result);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Returns phrases for the provided member/playlist combination 
+router.get('/memberPlaylistAndPhrases', async (req, res, next) => {
+    try {
+        console.log("[api] playlistPhrases req", req.query);
+        const { memberId } = req.query;
+        const result = await knex('phraseplaylist')
+            .leftJoin('phrase','phraseplaylist.phraseId', 'phrase.id')
+            .leftJoin('playlist', 'phraseplaylist.playlistId','playlist.id')
+            .select()
+            .where('playlist.memberId', memberId)
+            .orderBy('phrase')
         // console.log("[api] phrases result", result);
         res.send(result);
     } catch (err) {
