@@ -9,16 +9,11 @@ import { withStyles } from '@material-ui/core/styles';
 
 
 const styles = theme => ({
-  coverContainer:{
-    position: 'relative',
-    textAlign: 'center',
-    color: '#333333',
-    padding: 0,
-  },
   card: {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: theme.palette.primary.main,
   },
   cardContent: {
     flexGrow: 1,
@@ -58,8 +53,8 @@ class PhraseCard extends React.Component {
       
       <React.Fragment>
         <CssBaseline />
-            <Card className={classes.card}>
-                <CardContent className={classes.cardContent}>
+            <Card className={classes.card}color="primary">
+                <CardContent className={classes.cardContent} >
                   <Typography className={classes.label}>
                       {phrase.phrase}
                   </Typography>

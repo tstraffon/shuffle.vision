@@ -29,9 +29,12 @@ const styles = theme => ({
     menuContainer: {
         width: '100%',
         height: '100%',
-        padding: theme.spacing.unit * 3,
         // float: 'right',
         // margin: theme.spacing.unit * 2,
+    },
+    slideContainer: {
+        padding: theme.spacing.unit * 3,
+        backgroundColor: theme.palette.primary.main
     },
     extendedIcon: {
         marginRight: theme.spacing.unit * 2,
@@ -102,6 +105,9 @@ const styles = theme => ({
       displayFormatLabel: {
         paddingTop: '25%',
         float: 'right',
+      },
+      secondaryLight:{
+        color: theme.palette.secondary.light,
       },
       footer: {
         backgroundColor: theme.palette.background.paper,
@@ -307,7 +313,7 @@ class FilterMenu extends Component {
 
       <div className={classes.menuContainer} onMouseEnter={this.toggleMenuTrue} onMouseLeave={this.toggleMenuFalse}>
           <CssBaseline />
-          <Slide direction="right" in={showMenu} mountOnEnter unmountOnExit>
+          <Slide direction="right" in={showMenu} mountOnEnter unmountOnExit className={classes.slideContainer}>
             <div >
               
               <Grid container spacing={0}>
@@ -324,6 +330,7 @@ class FilterMenu extends Component {
                     value="cards"
                     name="cards-radio-button"
                     inputProps={{ 'aria-label': 'A' }}
+                    style ={{ color: "#FFF" }}
                   />
                 </Grid>
                 <Grid item key={'block-title'} sm={2}>
@@ -336,6 +343,7 @@ class FilterMenu extends Component {
                     value="block"
                     name="block-radio-button"
                     inputProps={{ 'aria-label': 'B' }}
+                    style ={{ color: "#FFF" }}
                   />
                 </Grid>
                 <Grid item key={'card-count-select'} sm={12}>
@@ -346,6 +354,7 @@ class FilterMenu extends Component {
                           value={cardCount}
                           // aria-labelledby="discrete-slider"
                           // valueLabelDisplay="auto"
+                          style ={{ color: "#FFF" }}
                           step={1}
                           onChange={this.handleCountSliderChange}
                           onChangeCommitted={this.handleSliderComittedChange}
@@ -359,7 +368,7 @@ class FilterMenu extends Component {
                           className={classes.countTextField}
                           value={cardCount}
                           onChange={this.handleCountTextFieldChange}
-                          inputProps={{ 'aria-label': 'bare' }}
+                          inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                         />
                       </Grid>
                     </Grid>
@@ -372,7 +381,7 @@ class FilterMenu extends Component {
                         <div>
                           <ListItem button onClick={() => { this.toggleShowMemberPlaylists(memberPlaylists, memberIndex); }}>
                             <ListItemText primary={member.memberId} />
-                            {member.showPlaylists ? <ExpandLess /> : <ExpandMore />}
+                            {member.showPlaylists ? <ExpandLess className={classes.secondaryLight}/> : <ExpandMore className={classes.secondaryLight}/>}
                           </ListItem>
                           <Collapse in={member.showPlaylists} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding>
@@ -381,6 +390,7 @@ class FilterMenu extends Component {
                                   <Checkbox
                                     checked={playlist.checked}
                                     value={playlist.name}
+                                    style ={{ color: "#FFF" }}
                                   />                  
                                   <ListItemText inset primary={playlist.name} />
                                 </ListItem>

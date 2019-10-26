@@ -9,17 +9,12 @@ import { withStyles } from '@material-ui/core/styles';
 
 
 const styles = theme => ({
-  coverContainer:{
-    position: 'relative',
-    textAlign: 'center',
-    color: '#333333',
-    padding: 0,
-  },
   card: {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
     marginTop: theme.spacing.unit * 8,
+    backgroundColor: theme.palette.primary.main,
   },
   cardContent: {
     flexGrow: 1,

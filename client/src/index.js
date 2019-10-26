@@ -16,14 +16,17 @@ window.__MUI_USE_NEXT_TYPOGRAPHY_VARIANTS__ = true;
 const theme = createMuiTheme({
     palette: {
       primary: {
-        main: '#FFFFFF',
+        main: '#333',
       },
       secondary: {
-        main: '#333',
-        light: '#999999'
+        main: '#464646',
+        light: '#FFF'
       },
       background:{
-        default:'#FFFFFF'
+        default:'#212121'
+      },
+      text:{
+        primary: '#FFF',
       },
       contrastThreshold: 3,
       tonalOffset: 0.2,
