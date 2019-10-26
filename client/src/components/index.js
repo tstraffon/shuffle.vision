@@ -5,7 +5,7 @@ import Images from "./Images/index.js";
 import Account from "./Account/index.js";
 import SignIn from "./SignIn/index.js";
 import NavMenu from "./Sidebars/NavMenu.js";
-import FilterMenu from "./Sidebars/FilterMenu";
+import FilterMenu from "./Home/FilterMenu";
 
 
 export{

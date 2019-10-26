@@ -14,7 +14,7 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import Checkbox from '@material-ui/core/Checkbox';
-import { AddToPlaylists, SelectCardCount } from '../../actions/index.js';
+import { AddToPlaylists, RemoveFromPlaylists, SelectCardCount, SelectDisplay } from '../../actions/index.js';
 import Typography from '@material-ui/core/Typography';
 import { connect } from 'react-redux';
 import axios from 'axios';
@@ -184,7 +184,7 @@ class FilterMenu extends Component {
 
     const { data:allPlaylists } = await axios.get('/api/allPlaylists'); 
 
-    console.log("[filter-menu] componentDidMount allPlaylists", allPlaylists);
+    // console.log("[filter-menu] componentDidMount allPlaylists", allPlaylists);
     const memberPlaylists = [];
 
     for (const p of allPlaylists){
@@ -205,7 +205,7 @@ class FilterMenu extends Component {
       }
     }
 
-    console.log("[filter-menu] memberPlaylists", memberPlaylists);
+    // console.log("[filter-menu] memberPlaylists", memberPlaylists);
 
     this.setState({
       allPlaylists,
@@ -221,14 +221,15 @@ class FilterMenu extends Component {
 
     const { allPlaylists } = this.state;
     const playlist = allPlaylists.find((p, i) => { return p.name === memberPlaylists[memberIndex].playlists[playlistIndex].name });
-    console.log("[filter-menu] toggledPlaylist", playlist);
+    // console.log("[filter-menu] toggledPlaylist", playlist);
 
     if(!currentPlaylistState){
-      console.log("[filter-menu] new playlist selected", playlist);
+      // console.log("[filter-menu] new playlist selected", playlist);
       this.props.AddToPlaylists(playlist);
     } else {
       // add remove playlist function here
-      console.log("[filter-menu] playlist deselected", playlist);
+      // console.log("[filter-menu] playlist deselected", playlist);
+      this.props.RemoveFromPlaylists(playlist);
     }
 
     this.setState({ memberPlaylists });
@@ -254,6 +255,7 @@ class FilterMenu extends Component {
 
   handleDisplayFormatChange = (event) => {
     // console.log("[filter-menu] displayFormat change", event.target.value);
+    this.props.SelectDisplay(event.target.value);
     this.setState({ displayFormat: event.target.value });
   }
   
@@ -287,7 +289,7 @@ class FilterMenu extends Component {
   }
 
   AddToPlaylists = (playlist) => {
-      this.props.AddToPlaylists(this.props.playlist);
+      this.props.AddToPlaylists(playlist);
   }
 
 
@@ -407,7 +409,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => {
   return {
     AddToPlaylists: playlist => dispatch(AddToPlaylists(playlist)),
+    RemoveFromPlaylists: playlist => dispatch(RemoveFromPlaylists(playlist)),
     SelectCardCount: cardCount => dispatch(SelectCardCount(cardCount)),
+    SelectDisplay: display => dispatch(SelectDisplay(display)),
   };
 }
 

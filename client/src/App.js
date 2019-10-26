@@ -16,7 +16,7 @@ import {
   Account,
   SignIn,
   NavMenu,
-  FilterMenu,
+  // FilterMenu,
 } from "./components/index.js";
 
 
@@ -140,10 +140,7 @@ class App extends React.Component {
             </AppBar>
             <main className={classes.content}>
             <Grid container spacing={16} justify="center">
-                <Grid item xs={3}>
-                    <FilterMenu />
-                </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={9}>
                     <Switch>
                         <Route exact path ="/" render={(playlists)=> <Home playlists={playlists}/>}></Route>
                         <Route path ="/playlists" render={()=> <Playlists />}></Route> 

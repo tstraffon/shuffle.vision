@@ -19,6 +19,7 @@ const styles = theme => ({
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
+    marginTop: theme.spacing.unit * 8,
   },
   cardContent: {
     flexGrow: 1,
@@ -40,20 +41,39 @@ class PhraseCard extends React.Component {
 
     this.state = {
       loading: true,
+      phraseBlock: [],
     };
   }
 
   async componentDidMount() {
-    this.setState({loading: false})
+    const { data } = this.props;
+    // console.log('[phrase-block] data', {data})
+
+    let phraseBlock = '';
+    for(const d of data){
+      phraseBlock = phraseBlock + ' ' + d.phrase
+    }
+    this.setState({loading: false, phraseBlock})
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { data } = nextProps;
+    // console.log('[phrase-block] data', {data})
+
+    let phraseBlock = '';
+    for(const d of data){
+      phraseBlock = phraseBlock + ' ' + d.phrase
+    }
+    this.setState({phraseBlock})
   }
 
   render() {
-    const { classes, phrase, cartCount } = this.props;
-    const { loading } = this.state;
+    const { classes} = this.props;
+    const { loading, phraseBlock } = this.state;
     if(loading){
       return(<div></div>);
     }
-    // console.log('[phrase-card] phrase', {phrase})
+    // console.log('[phrase-block] phraseblock', {phraseBlock})
     return (
       
       <React.Fragment>
@@ -61,7 +81,7 @@ class PhraseCard extends React.Component {
             <Card className={classes.card}>
                 <CardContent className={classes.cardContent}>
                   <Typography className={classes.label}>
-                      {phrase.phrase}
+                      {phraseBlock}
                   </Typography>
                 </CardContent>
             </Card>
