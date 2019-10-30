@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import PlaylistList from './PlaylistList';
+import PlaylistMenu from './PlaylistMenu';
 import PhraseCardGrid from '../Home/PhraseCardGrid';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -15,7 +15,7 @@ const styles = theme => ({
         fontSize: '2em',
         textAlign: 'center'
     },
-    playlistListContainer: {
+    playlistMenuContainer: {
         width: '100%',
         height: '100%',
         // float: 'right',
@@ -113,9 +113,9 @@ class Playlist extends Component {
         return(
             <div >
                 <Grid container spacing={0} justify="center">
-                    <Grid item xs={4} className={classes.playlistListContainer}>
+                    <Grid item xs={4} className={classes.playlistMenuContainer}>
                         <h1 className={classes.playlistHeader}>Playlists</h1>
-                        <PlaylistList playlists={playlists} selectPlaylist={this.selectPlaylist} />
+                        <PlaylistMenu playlists={playlists} selectPlaylist={this.selectPlaylist} />
                     </Grid>
                     <Grid item xs={8}>
                         <h1 className={classes.playlistHeader}>{currentPlaylist.name}</h1>

@@ -13,11 +13,12 @@ router.get('/playlistPhrases', async (req, res, next) => {
         const result = await knex('phraseplaylist')
             .leftJoin('phrase','phraseplaylist.phraseId', 'phrase.id')
             .leftJoin('playlist', 'phraseplaylist.playlistId','playlist.id')
-            .select()
+            .select('phrase.id', 'phrase')
             .whereIn('playlist.id', playlists)
             .whereIn('playlist.memberId', memberIds)
             .orderBy('phrase')
-        // console.log("[api] phrases result", result);
+            .groupBy('phrase.id', 'phrase')
+
         res.send(result);
     } catch (err) {
         next(err);
@@ -72,12 +73,12 @@ router.get('/allPlaylists', async (req, res, next) => {
 });
 
 // Submit new phrases to a member/playlist combination 
-router.get('/addPhrase', async (req, res, next) => {
+router.get('/addPhrases', async (req, res, next) => {
     try {
 
-        console.log("[api] addPhrase req", req.query);
+        console.log("[api] addPhrases req", req.query);
 
-        const { phrase, memberId, playlistId } = req.query;
+        const { phrase, memberId, playlistIds } = req.query;
 
         await knex.raw('create extension if not exists "uuid-ossp"');
         const {rows} = await knex.raw('SELECT uuid_generate_v1()');
@@ -91,17 +92,23 @@ router.get('/addPhrase', async (req, res, next) => {
             dateAdded: now,
             lastUpdated: now,
         }
-        const phrasePlaylistPayload = {
-            phraseId,
-            playlistId,
-            memberId,
-            dateAdded: now,
-            lastUpdated: now,
-        }
+
         const phraseResult = await knex('phrase')
             .insert(phrasePayload);
-        const phrasePlaylistResult = await knex('phraseplaylist')
-            .insert(phrasePlaylistPayload);
+
+        for(const p of playlistIds){
+
+            const phrasePlaylistPayload = {
+                phraseId,
+                playlistId: p,
+                memberId,
+                dateAdded: now,
+                lastUpdated: now,
+            }
+
+            await knex('phraseplaylist')
+                .insert(phrasePlaylistPayload);
+        }
 
         // console.log("[api] addPhrase result", result);
         res.send(phraseResult);

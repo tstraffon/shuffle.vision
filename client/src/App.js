@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
-import { Link, Route, Switch } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import axios from 'axios';
 
@@ -14,7 +14,6 @@ import {
   Playlists,
   Images,
   Account,
-  SignIn,
   NavMenu,
 } from "./components/index.js";
 
@@ -119,7 +118,7 @@ class App extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const { playlists, loading } = this.state;
+    const { loading } = this.state;
 
     if(loading){
       return(<div></div>);
@@ -141,7 +140,7 @@ class App extends React.Component {
             <Grid container spacing={16} justify="center">
                 <Grid item xs={9}>
                     <Switch>
-                        <Route exact path ="/" render={(playlists)=> <Home playlists={playlists}/>}></Route>
+                        <Route exact path ="/" render={()=> <Home/>}></Route>
                         <Route path ="/playlists" render={()=> <Playlists />}></Route> 
                         <Route path="/images" render={()=> <Images />} />
                         <Route path="/account" render={()=> <Account />} />

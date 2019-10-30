@@ -3,12 +3,12 @@ import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import Reorder from '@material-ui/icons/PlaylistPlay';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
-import AccountCircle from '@material-ui/icons/AccountCircle';
+import Checkbox from '@material-ui/core/Checkbox';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import FormLabel from '@material-ui/core/FormLabel';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { withStyles } from '@material-ui/core/styles';
@@ -47,14 +47,13 @@ const styles = theme => ({
         padding: theme.spacing.unit * 2,
         backgroundColor: theme.palette.primary.main,
     },
-    // input: {
-    //     color: '#FFF',
-    //     borderColor: "#FFF !important",
-    //     multilineColor:"#FFF",
-    //     input:"#FFF",
-    //     floatingLabelFocusStyle: "#FFF",
-        
-    // },
+    nested: {
+        paddingTop: '0px',
+        paddingBottom: '0px'
+    },
+    border: {
+        borderColor : '#FFF !important'
+    },
     textField: {    
         width: '90%',
         marginLeft: theme.spacing.unit * 2,
@@ -131,36 +130,56 @@ class NavMenu extends Component {
 
     addPhrase = async () => {
         
-        const { textFieldValue, selectedPlaylist } = this.state;
+        const { textFieldValue, memberPlaylists } = this.state;
+        let playlistIds = [];
 
-        await axios.get('/api/addPhrase',{
+        for(const p of memberPlaylists){
+            if(p.checked){
+                playlistIds.push(p.id);
+            }
+        }
+
+        await axios.get('/api/addPhrases',{
             params: {
                 phrase: textFieldValue,
                 memberId: "sly",
-                playlistId: selectedPlaylist,
+                playlistIds,
             },
         }); 
         
         this.setState({addPhrase: false, textFieldValue:""});
     }  
 
+    toggleSelectPlaylist = (memberPlaylists, playlistIndex ) => {
+
+        const currentPlaylistState = memberPlaylists[playlistIndex].checked;
+        memberPlaylists[playlistIndex].checked = !currentPlaylistState;
+        this.setState({ memberPlaylists });
+
+    };
+
 
 
     async componentDidMount() {
 
-        const {data:memberPlaylists} = await axios.get('/api/memberPlaylists',{
+        let {data:memberPlaylists} = await axios.get('/api/memberPlaylists',{
             params: {
                 memberId: "sly",
             },
         }); 
 
-        const selectedPlaylist = memberPlaylists[0].id
-        this.setState({loading: false, memberPlaylists, selectedPlaylist})
+        for(let p of memberPlaylists){
+            p.checked = false
+        }
+
+        this.setState({loading: false, memberPlaylists})
     }
 
   render() {
+
     const { classes, } = this.props;
-    const { loading, addPhrase, showMenu, textFieldValue, selectedPlaylist, memberPlaylists } = this.state;
+    const { loading, addPhrase, textFieldValue, memberPlaylists } = this.state;
+
     if(loading){
       return(<div></div>);
     }
@@ -182,46 +201,26 @@ class NavMenu extends Component {
                                         margin="normal"
                                         variant="outlined"
                                         InputProps={{
-                                            className: classes.input,
-                                        }}
-                                        style ={{ 
-                                            multilineColor:{
-                                                color:"#FFF"
+                                            classes: {
+                                                notchedOutline: classes.border,
                                             },
-                                            input: {
-                                                color: "#FFF"
-                                            },
-                                            floatingLabelFocusStyle: {
-                                                color: "#FFF"
-                                            } 
                                         }}
                                     /> 
                                 </Grid>
                                 <Grid item key={"new-phrase-playlist-select"} sm={12} className={classes.playlistSelect}>
-                                    {/* <InputLabel shrink htmlFor="playlist-select">Playlist</InputLabel>
-                                    <Select
-                                        value={selectedPlaylist}
-                                        onChange={this._handlePlaylistChange}
-                                        // inputProps={{
-                                        //     name: 'age',
-                                        //     id: 'age-label-placeholder',
-                                        // }}
-                                        displayEmpty
-                                        // name="selectedPlaylist"
-                                        className={classes.selectEmpty}
-                                    >
-                                        {memberPlaylists.map(playlist => (
-                                            <MenuItem value={playlist.name}>{playlist.name}</MenuItem>
+                                    <FormLabel component="legend" style ={{ color: "#FFF" }}>Playlists</FormLabel>
+                                    <List component="div" disablePadding>
+                                        {memberPlaylists.map((playlist, playlistIndex) => (
+                                            <ListItem button className={classes.nested} onClick={() => { this.toggleSelectPlaylist(memberPlaylists, playlistIndex); }}>
+                                                <Checkbox
+                                                    checked={playlist.checked}
+                                                    value={playlist.id}
+                                                    style ={{ color: "#FFF" }}
+                                                />                  
+                                                <ListItemText inset primary={playlist.name} />
+                                            </ListItem>
                                         ))}
-                                    </Select> */}
-                                    <FormLabel component="legend" style ={{ color: "#FFF" }}>Playlist</FormLabel>
-                                    <RadioGroup aria-label="playlist" name="playlist-select" value={selectedPlaylist} onChange={this._handlePlaylistChange}>
-                                        {memberPlaylists.map(playlist => (
-                                            // <Grid item key={"new-phrase-playlist-select"} sm={6}>
-                                                <FormControlLabel value={playlist.id} control={<Radio style ={{ color: "#FFF" }}                                                />} label={playlist.name} />
-                                            // </Grid>
-                                        ))}
-                                    </RadioGroup>
+                                    </List>
                                 </Grid>
                                 {/* <Grid item key={"new-phrase-submit-button"} sm={6}> */}
                                     <Button size="large" color="secondary" className={classes.button} onClick={this.addPhrase}>
@@ -237,9 +236,9 @@ class NavMenu extends Component {
                         </Paper>
                     </Slide>
                 <div className={classes.fabContainer}>
-                    <Fab color="primary" aria-label="add-phrase" className={classes.fab} onClick={this.toggleAddPhraseTrue}>
+                    {!addPhrase ? <Fab color="primary" aria-label="add-phrase" className={classes.fab} onClick={this.toggleAddPhraseTrue}>
                         <AddIcon />
-                    </Fab>
+                    </Fab> : null }
                     <Fab color="primary" aria-label="home" className={classes.fab} button component={Link} to="/">
                         <ShuffleIcon />
                     </Fab>

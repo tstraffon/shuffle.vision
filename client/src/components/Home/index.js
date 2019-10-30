@@ -88,11 +88,12 @@ class Home extends Component {
         super(props);
         this.state = {
             loading: true,
-            data: [],
-            displayData: [],
-            playlists: [],
             cardCount: 3,
-            display: 'cards'
+            display: 'cards',
+            playlists: [],
+            displayedPhrases: [],
+            selectedPlaylists: [],
+            allPhrases: [],
         }
     }
 
@@ -188,7 +189,6 @@ class Home extends Component {
             return(<div></div>);
         }
 
-        // console.log('[home] display', display, displayedPhrases)
         
         return(
             <div >
@@ -200,7 +200,6 @@ class Home extends Component {
                         <Button variant="contained" className={classes.shuffleButton} color="primary" onClick={() => { this.shuffle(cardCount, allPhrases); }} >
                             Shuffle
                         </Button>
-                        {/* <PhraseCardGrid data={displayedPhrases} /> */}
                         {display === 'cards' ? <PhraseCardGrid data={displayedPhrases} /> : <PhraseBlock data={displayedPhrases} />}
                     </Grid>
                 </Grid>

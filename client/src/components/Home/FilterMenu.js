@@ -5,7 +5,6 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Radio from '@material-ui/core/Radio';
-import Slide from '@material-ui/core/Slide';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -29,7 +28,6 @@ const styles = theme => ({
     menuContainer: {
         width: '90%',
         height: '100%',
-        borderRadius: '25px',
         // float: 'right',
         // margin: theme.spacing.unit * 2,
     },
@@ -155,17 +153,6 @@ const styles = theme => ({
         paddingBottom: '0px'
       }
 });
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
 
 
 class FilterMenu extends Component {
@@ -302,14 +289,12 @@ class FilterMenu extends Component {
 
   render() {
     const { classes } = this.props;
-    const { loading, showMenu, displayFormat, cardCount, memberPlaylists} = this.state;
-
+    const { loading,  displayFormat, cardCount, memberPlaylists} = this.state;
 
     if(loading){
       return(<div></div>);
     }
-    // console.log('[filter-menu] memberPlaylists', memberPlaylists);
-    // console.log('[filter-menu] sessionPlaylists', sessionPlaylists);
+
     return (
 
       <div className={classes.menuContainer} onMouseEnter={this.toggleMenuTrue} onMouseLeave={this.toggleMenuFalse}>
