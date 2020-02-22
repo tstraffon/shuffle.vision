@@ -211,7 +211,7 @@ class NavMenu extends Component {
                                     <FormLabel component="legend" style ={{ color: "#FFF" }}>Playlists</FormLabel>
                                     <List component="div" disablePadding>
                                         {memberPlaylists.map((playlist, playlistIndex) => (
-                                            <ListItem button className={classes.nested} onClick={() => { this.toggleSelectPlaylist(memberPlaylists, playlistIndex); }}>
+                                            <ListItem button key={playlistIndex}className={classes.nested} onClick={() => { this.toggleSelectPlaylist(memberPlaylists, playlistIndex); }}>
                                                 <Checkbox
                                                     checked={playlist.checked}
                                                     value={playlist.id}

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import PlaylistMenu from './PlaylistMenu';
-import PhraseCardGrid from '../Home/PhraseCardGrid';
+import PlaylistPhraseCardGrid from './PlaylistPhraseCardGrid';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 
@@ -13,7 +13,8 @@ const styles = theme => ({
     playlistHeader: {
         color: '#FFF',
         fontSize: '2em',
-        textAlign: 'center'
+        textAlign: 'center',
+        fontFamily: 'Montserrat'
     },
     playlistMenuContainer: {
         width: '100%',
@@ -32,94 +33,65 @@ class Playlist extends Component {
         this.state = {
             loading: true,
             playlists: [],
+            phrases: [],
             phrasesByPlaylist: [],
             selectedPlaylistPhrases: [],
             member: 'sly',
-            currentPlaylist: ''
+            currentPlaylist: false
         }
     }
 
     selectPlaylist = (playlist) => {
-        const { phrasesByPlaylist } = this.state;
-        const selectedPlaylist = phrasesByPlaylist.find((x) => { return x.playlistId === playlist.id; })
-        const selectedPlaylistPhrases = selectedPlaylist.phrases;
-        this.setState({ currentPlaylist: playlist, selectedPlaylistPhrases });
+        this.getPlaylistPhrases(playlist.id)
     }
 
+    refreshPlaylists = async (currentPlaylistId) =>{
+        console.log('[playlists] refreshing playlists...')
+        this.getPlaylistPhrases(currentPlaylistId)
+    }
 
-    async componentDidMount() {
+    getPlaylistPhrases = async (playlistId) =>{
+        console.log('[getPlaylistPhrases] getting playlist phrases...', playlistId)
         try{
             // on initial load retrieve all playlists created by signed in member
-            let { data:allPhrases } = await axios.get('/api/memberPlaylistAndPhrases', {
+            let { data:phrases } = await axios.get('/api/memberPlaylistPhrases', {
                 params: {
                     memberId: "sly",
+                    playlistId
                 }
             });  
 
-            // create an array of just playlist Ids and add each playlist to the store
-            let playlists = [], phrasesByPlaylist = [];
-            for(const p of allPhrases){
-                const playlistObj = playlists.find((x) => { return x.id === p.playlistId; })
+            const currentPlaylist = playlistId == 0 || !playlistId ? phrases[0].playlistId : playlistId;
 
-                if(!playlistObj){
-                    const playlist = {
-                        id: p.playlistId,
-                        name: p.name
-                    }
-                    playlists.push(playlist);
-                }
-
-                const phraseByPlaylistObj = phrasesByPlaylist.find((x) => { return x.playlistId === p.playlistId; })
-
-                if(!phraseByPlaylistObj) {
-                    const newphraseByPlaylistObj = {
-                        playlistId: p.playlistId,
-                        phrases: [{
-                            id: p.phraseId,
-                            phrase: p.phrase
-                        }]
-                    }
-                    phrasesByPlaylist.push(newphraseByPlaylistObj)
-                } else {
-                    const newPhraseObj = {
-                        id: p.phraseId,
-                        phrase: p.phrase
-                    }
-                    phraseByPlaylistObj.phrases.push(newPhraseObj)
-                }
-            }
-
-            console.log("[playlist] playlists", playlists);
-            console.log("[playlist] phrasesByPlaylist", phrasesByPlaylist);
-
-            const currentPlaylist = playlists[0]
-            const selectedPlaylist = phrasesByPlaylist.find((x) => { return x.playlistId === currentPlaylist.id; })
-            const selectedPlaylistPhrases = selectedPlaylist.phrases;
-
-            this.setState({ playlists, loading: false, currentPlaylist, selectedPlaylistPhrases, phrasesByPlaylist });
+            this.setState({ loading: false, phrases, currentPlaylist })
         } catch (err) {
             throw Error (err);
         }
     }
+
+
+    async componentDidMount() {
+        this.getPlaylistPhrases(0);
+    }
     
     render(){
         const { classes } = this.props;
-        const { loading, playlists, selectedPlaylistPhrases, currentPlaylist } = this.state
+        const { loading, playlists, phrases } = this.state
 
         if(loading){
             return(<div></div>);
-        }
+        }            
         
         return(
             <div >
                 <Grid container spacing={0} justify="center">
                     <Grid item xs={4} className={classes.playlistMenuContainer}>
                         <h1 className={classes.playlistHeader}>Playlists</h1>
-                        <PlaylistMenu playlists={playlists} selectPlaylist={this.selectPlaylist} />
+                        <PlaylistMenu selectPlaylist={this.selectPlaylist} />
                     </Grid>
                     <Grid item xs={8}>
-                        <h1 className={classes.playlistHeader}>{currentPlaylist.name}</h1>
-                        <PhraseCardGrid data={selectedPlaylistPhrases} />
+                        <h1 className={classes.playlistHeader}>{phrases[0].name}</h1>
+                        <PlaylistPhraseCardGrid phrases={phrases} memberPlaylists={playlists} refreshPlaylists={this.refreshPlaylists}/>
                     </Grid>
                 </Grid>
             </div>

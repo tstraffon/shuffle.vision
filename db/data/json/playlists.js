@@ -9,7 +9,7 @@ module.exports =[
     },
     {
       "id": "766bb2ff-e694-411c-9adf-8c3df3476af4",
-      "name": "dope blocks soap box",
+      "name": "check 2",
       "memberId": "sly",
       "public": true,
       "dateAdded": "9/1/2019",

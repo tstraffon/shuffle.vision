@@ -58,7 +58,7 @@ class PhraseCardGrid extends React.Component {
               {data.map(phrase => (
                 
                 <Slide in={!loading} direction="up" style={{ transitionDelay: !loading ? '1000ms' : '0ms' }}>
-                    <Grid item key={phrase.phraseId} sm={6} md={4} lg={4}>
+                    <Grid item key={phrase} sm={6} md={4} lg={4}>
                       <PhraseCard phrase={phrase} />
                     </Grid>
                 </Slide>

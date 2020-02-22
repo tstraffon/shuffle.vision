@@ -5,6 +5,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import EditIcon from '@material-ui/icons/Edit';
+import ControlCameraIcon from '@material-ui/icons/ControlCamera';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
@@ -24,10 +25,21 @@ const styles = theme => ({
     margin: 'auto',
     paddingBottom: theme.spacing.unit,
   },
+  hoverCardContent: {
+    flexGrow: 1,
+    margin: 'auto',
+    height: '50%',
+  },
   label: {
     textAlign: 'center',
     opacity: 1,
     fontSize: '2em',
+  },
+  hoverLabel: {
+    textAlign: 'center',
+    opacity: 1,
+    fontSize: '2em',
+    paddingTop: 0,
   },
   actionContainer:{
     // paddingBottom: theme.spacing.unit * 2,
@@ -45,16 +57,21 @@ const styles = theme => ({
     "&:hover": {
       backgroundColor: theme.palette.secondary.main,
     }
+  },
+  editIcon:{
+    color: '#FFF',
+    display: 'block',
+    float: 'left',
+    // width: '100%',
+  },
+  deleteIcon:{
+    color: '#FFF',
+    display: 'block',
+    float: 'right',
+    // width: '100%',
   }
 });
 
-const editPhrase = (phrase) => {
-  console.log('[edit-phrase]', phrase)
-}
-
-const deletePhrase = (phrase) => {
-  console.log('[delete-phrase]', phrase)
-}
 
 class PhraseCard extends React.Component {
 
@@ -71,7 +88,17 @@ class PhraseCard extends React.Component {
     this.setState({loading: false})
   }
 
+  editPhrase = (phrase) => {
+    console.log('[edit-phrase]', phrase)
+  }
 
+  movePhrase = (phrase) => {
+    console.log('[move-phrase]', phrase)
+  }
+  
+  deletePhrase = (phrase) => {
+    console.log('[delete-phrase]', phrase)
+  }
 
   mouseEnter = () => {
     this.setState({ showActions: true });
@@ -92,27 +119,11 @@ class PhraseCard extends React.Component {
     return (
       <React.Fragment>
         <CssBaseline />
-            <Card className={classes.card}color="primary" onMouseEnter={this.mouseEnter} onMouseLeave={this.mouseLeave}>
-                <CardContent className={classes.cardContent} >
-                  <Typography className={classes.label}>
-                      {phrase.phrase}
-                  </Typography>
-                </CardContent>
-                {showActions ? 
-                  <Grid container spacing={0}>
-                    <Grid item key={`edit-${phrase.id}`} sm={6} className={classes.actionContainer}>
-                      <Button size="small" color="secondary" className={classes.actionIcon} onClick={editPhrase()}>
-                        <EditIcon />
-                      </Button>
-                    </Grid>
-                    <Grid item key={`delete-${phrase.id}`} sm={6}>
-                      <Button size="small" color="secondary" className={classes.actionIcon} onClick={deletePhrase()}>
-                        <DeleteIcon />
-                      </Button>
-                    </Grid>
-                  </Grid>
-                : null}
-            </Card>
+          <Card className={classes.card}color="primary" onMouseEnter={this.mouseEnter} onMouseLeave={this.mouseLeave}>
+            <CardContent className={classes.cardContent} >
+              <Typography className={classes.label}>{phrase.phrase}</Typography>
+            </CardContent>
+          </Card>
       </React.Fragment>
     );
   }
