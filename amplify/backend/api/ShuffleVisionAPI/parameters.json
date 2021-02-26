@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "ShuffleVisionAPI",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authshufflevision755db5d3",
+      "Outputs.UserPoolId"
+    ]
+  }
+}

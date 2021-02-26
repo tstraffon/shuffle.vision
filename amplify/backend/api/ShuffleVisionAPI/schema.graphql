@@ -1,0 +1,15 @@
+type Item @model 
+@auth(rules: [{allow: owner, queries: null}]){
+  id: ID!
+  content: String!
+  playlist: Playlist! @connection(name: "PlaylistItems")
+ }
+
+type Playlist @model
+@auth(rules: [{allow: owner, queries: null}]){
+  id: ID!
+  title: String!
+  public: Boolean!
+  followers: [String]!
+  items: [Item] @connection(name: "PlaylistItems")
+}
