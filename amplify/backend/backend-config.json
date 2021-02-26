@@ -1,0 +1,10 @@
+{
+  "auth": {
+    "shufflevision755db5d3": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "customAuth": false
+    }
+  }
+}
