@@ -68,7 +68,7 @@ const Shuffle = () => {
       let updateActivePlaylists = compareArrays(checkedPlaylists, activePlaylists)
 
       if(!updateActivePlaylists || activeItems.length < 1){
-        const { data } = await API.graphql(graphqlOperation(listItems, {filter: { playlistID:  {in: checkedPlaylists} }}));
+        const { data } = await API.graphql(graphqlOperation(listItems, {filter: { itemPlaylistId:  {in: checkedPlaylists} }}));
         shuffleDataInput = data.listItems.items;
         setActivePlaylists(checkedPlaylists);
         setAllItems(shuffleDataInput)
@@ -138,7 +138,7 @@ const Shuffle = () => {
                     {allPlaylists.map((playlist) => {
                       const labelId = `checkbox-list-label-${playlist.title}`;
                       return (
-                        <ListItem key={playlist.title} role={undefined} dense button onClick={handleToggleCheckedPlaylists(playlist.id)} style={{float: 'left', width:'50%'}}>
+                        <ListItem key={playlist.title} role={undefined} dense button onClick={handleToggleCheckedPlaylists(playlist.id)} style={{float: 'left', height:'50px', width:'50%'}}>
                           <ListItemIcon>
                             <Checkbox
                               edge="start"
@@ -221,7 +221,7 @@ const Shuffle = () => {
                 <Grid item key={i.id} xs={12} md={3}>
                   <Card>
                     <CardContent  >
-                      <Typography>{i.item.content}</Typography>
+                      <Typography>{i.content}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -230,7 +230,7 @@ const Shuffle = () => {
             <Grid item key={'blockDisplay'} xs={12}>
               <Card>
                 <CardContent  >
-                  <Typography>{activeItems.map(i => (i.item.content + ' '))}</Typography>
+                  <Typography>{activeItems.map(i => (i.content + ' '))}</Typography>
                 </CardContent>
               </Card>
             </Grid>
