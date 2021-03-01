@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { Auth } from 'aws-amplify';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import { BrowserRouter, Route, Switch, NavLink } from 'react-router-dom';
 import { Box, Grid, ListItemIcon, MenuItem, MenuList, Typography } from '@material-ui/core';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import Reorder from '@material-ui/icons/PlaylistPlay';
 import PublicIcon from '@material-ui/icons/Public';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import theme from './theme';
 
 import { 
@@ -25,13 +28,21 @@ const navBar = {
   /* position: absolute; */
 }
 
+const signOut = async () => {
+  try {
+      await Auth.signOut();
+  } catch (error) {
+      console.log('error signing out: ', error);
+  }
+}
+
 function App() {
 
   return (
     <div className="App">
       <BrowserRouter bassname="/">
         <Grid container spacing={8} justify="center">
-          <Grid item xs={3} style={{paddingTop: '0px'}}>    
+          <Grid item xs={3} sm={3} style={{paddingTop: '0px'}}>    
             <div style={navBar}>
               <h1>shuffle.vision</h1>
               <Box p={2} style={{paddingLeft: '0px', paddingRight: '0px'}}>
@@ -53,6 +64,18 @@ function App() {
                       <PublicIcon fontSize="large" />
                     </ListItemIcon>
                     <Typography variant="inherit">Browse</Typography>
+                  </MenuItem>
+                  <MenuItem component={NavLink} to={"/browse"} >
+                    <ListItemIcon style={navMenutItem}>
+                      <AccountCircleIcon fontSize="large" />
+                    </ListItemIcon>
+                    <Typography variant="inherit">Profile</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={signOut} >
+                    <ListItemIcon style={navMenutItem}>
+                      <ExitToAppIcon fontSize="large" />
+                    </ListItemIcon>
+                    <Typography variant="inherit">Sign Out</Typography>
                   </MenuItem>
                 </MenuList>
               </Box>

@@ -1,41 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import '../../App.css';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
-import { getPlaylistsByTitle, listPlaylists, listItems, getPlaylist } from '../../graphql/queries';
+import { listPlaylists, listItems } from '../../graphql/queries';
+
 import { 
   createPlaylist as createPlaylistMutation, 
+  updateItem as updateItemMutation, 
   deletePlaylist as deletePlaylistMutation, 
   createItem as createItemMutation, 
-  deleteItem as deleteItemMutation, 
+  updatePlaylist as updatePlaylistMutation, 
+  deleteItem as deleteItemMutation,
 } from '../../graphql/mutations';
+
 import { 
   Button,
   Card,
   CardContent,
   CardHeader,
-  Checkbox,
   CircularProgress,
   Divider,
   Grid,
   IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Modal,
-  Radio,
-  RadioGroup,
-  Paper,
+  Switch,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
-  TableHead,
   TableRow,
   TextField,
   Typography 
 } from '@material-ui/core';
-
 import { sortObjectsAlphabetically } from '../../util/helperFunctions.js';
 import Reorder from '@material-ui/icons/PlaylistPlay';
 import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined'
@@ -48,58 +42,61 @@ import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import theme from '../../theme';
 
 
-const initialCPFormState = { title: '', public: true, followers: [] }
+const initialCreatePlaylistFormData = { id: '', title: '', public: true, followers: [] }
 
-const initialItemState = { content: ''}
-const initalSelectedPlaylist = {title:'No Playlists Found'}
-const playlistCard = { height: '150px', width: '150px', alignItems: 'center'}
+const initialItemState = { id: '', content: ''}
+ const playlistCard = { height: '150px', width: '150px', alignItems: 'center'}
 const playlistCardContent = { paddingTop:'62px'}
 const cardHeaderStyle = { backgroundColor: theme.palette.primary.main, float:'left', color:'white', fontSize:'16px', width:'100%' }
 
 const Playlist = () => {
-  const [loading, setLoading] = React.useState(true);
+  const [loadingPlaylists, setLoadingPlaylists] = React.useState(true);
+  const [loadingPlaylistItems, setLoadingPlaylistItems] = React.useState(true);
   const [userPlaylists, setUserPlaylists] = React.useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = React.useState(null);
   const [playlistItems, setPlaylistItems] = React.useState([]);
   const [showCreatePlaylist, setShowCreatePlaylist ] = React.useState(false);
-  const [playlistFormData, setPlaylistFormData] = useState(initialCPFormState);
-  const [showCreateItem, setShowCreateItem ] = React.useState(false);
+  const [createPlaylistFormData, setCreatePlaylistFormData] = useState(initialCreatePlaylistFormData);
+  const [editPlaylistFormData, setEditPlaylistFormData] = useState(initialCreatePlaylistFormData);
+  const [showEditPlaylist, setShowEditPlaylist ] = React.useState(false);
   const [showDeletePlaylist, setShowDeletePlaylist ] = React.useState(false);
-  const [itemFormData, setItemFormData] = useState(initialItemState);
+  const [showCreateItem, setShowCreateItem ] = React.useState(false);
+  const [showEditItem, setShowEditItem ] = React.useState('');
+  const [createItemFormData, setCreateItemForm] = useState(initialItemState);
+  const [editItemFormData, setEditItemFormData] = useState(initialItemState);
 
 
   useEffect(async () => {
     await fetchPlaylists();
-    setLoading(false);
+    setLoadingPlaylists(false);
   }, [])
 
 
   const fetchPlaylists = async () => {
-      try {
-        const { username } = await Auth.currentUserInfo() 
-        const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { owner:  {eq: username} }}));
-        const sortedData = sortObjectsAlphabetically(data.listPlaylists.items, "title");
-        setUserPlaylists(sortedData);
-        if(sortedData.length){
-          setSelectedPlaylist(sortedData[0]);
-          fetchPlaylistItems(sortedData[0])
-        } 
-      } catch(error) {
-        console.error('[playlist-fetchPlaylists] error', error.errors[0].message);
-      }
+    try {
+      const { username } = await Auth.currentUserInfo() 
+      const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { owner:  {eq: username} }}));
+      const sortedData = sortObjectsAlphabetically(data.listPlaylists.items, "title");
+      setUserPlaylists(sortedData);
+      if(sortedData.length){
+        setSelectedPlaylist(sortedData[0]);
+        fetchPlaylistItems(sortedData[0])
+      } 
+    } catch(error) {
+      console.error('[playlist-fetchPlaylists] error', { error });
+    }
   }
 
   const fetchPlaylistItems = async (playlist) => {
-    // const apiData = await API.graphql({ query: listPlaylists, variables, });
     try {
+      setLoadingPlaylistItems(true);
       const playlistId = playlist.id;
-      console.log('fetchPlaylistItems playlistId', playlistId);
       const  { data } = await API.graphql(graphqlOperation(listItems, { filter: { itemPlaylistId: { eq: playlistId }}}));
-      console.log('fetchPlaylistItems data', data);
       setPlaylistItems(data.listItems.items);
-
+      setLoadingPlaylistItems(false);
     } catch(error) {
-      console.error('[playlist-fetchPlaylistItems] error', error.errors[0].message);
+      setLoadingPlaylistItems(false);
+      console.error('[playlist-fetchPlaylistItems] error', { error });
     }
 }
 
@@ -107,40 +104,49 @@ const Playlist = () => {
 
   const createPlaylist = async () => {
     try {
-      if (!playlistFormData.title) return;
+      setLoadingPlaylists(true);
+
+      if (!createPlaylistFormData.title) return;
       const { username } = await Auth.currentUserInfo() 
-      playlistFormData.followers = [username]
-      console.log('playlistFormData', playlistFormData)
-      const { data } = await API.graphql({ query: createPlaylistMutation, variables: { input: playlistFormData } });
+      createPlaylistFormData.followers = [username]
+      const { data } = await API.graphql({ query: createPlaylistMutation, variables: { input: createPlaylistFormData } });
       let newPlaylist = data.createPlaylist
       newPlaylist['followers'] = [username];
       const newSortedData = sortObjectsAlphabetically([ ...userPlaylists, newPlaylist ], "title");
 
       setUserPlaylists(newSortedData);
-      setPlaylistFormData(initialCPFormState);
+      setCreatePlaylistFormData(initialCreatePlaylistFormData);
       setShowCreatePlaylist(!showCreatePlaylist);
       setPlaylistItems([])
       setSelectedPlaylist(newPlaylist)
+      setLoadingPlaylists(false);
     } catch (error) {
-      console.error('[playlists] createPlaylist error', error.errors[0].message);
+      console.error('[playlists] createPlaylist error', { error });
     }
 
   }
 
   const createItem = async () => {
     try {
-      console.log('[ playlists] itemFormData, selectedPlaylist', itemFormData, selectedPlaylist)
-
-      if (!itemFormData.content || !selectedPlaylist.id) return;
-  
-      const { data:createItemResult } = await API.graphql({ query: createItemMutation, variables: { input: {...itemFormData, itemPlaylistId: selectedPlaylist.id }}});
-      itemFormData['id'] = createItemResult.createItem.id;
-      console.log('[ playlists] createitem result', createItemResult)
+      if (!createItemFormData.content || !selectedPlaylist.id) return;
+      const { data:createItemResult } = await API.graphql({ query: createItemMutation, variables: { input: {...createItemFormData, itemPlaylistId: selectedPlaylist.id }}});
+      createItemFormData['id'] = createItemResult.createItem.id;
       setPlaylistItems([ ...playlistItems, createItemResult.createItem ]);
       setShowCreateItem(!setShowCreateItem);
-      setItemFormData(initialItemState);
+      setCreateItemForm(initialItemState);
     } catch (error) {
-      console.error('[playlists] createItem error', error.errors[0].message);
+      console.error('[playlists] createItem error', { error });
+    }
+  }
+
+  const updatePlaylist = async () => {
+    try {
+      const updatePlaylistInput ={ id: selectedPlaylist.id, title: editPlaylistFormData.title, public: editPlaylistFormData.public }
+      const { data:updatePlaylist } = await API.graphql({ query: updatePlaylistMutation, variables: { input: updatePlaylistInput}});
+      setShowEditPlaylist(false);
+      setSelectedPlaylist(editPlaylistFormData);
+    } catch (error) {
+      console.error('[playlists] updatePlaylist error', { error });
     }
   }
 
@@ -149,8 +155,6 @@ const Playlist = () => {
     try{
 
       if (!selectedPlaylist.id) return;
-      console.log("deleting playlist...", selectedPlaylist)
-
       const { id } = selectedPlaylist;
       await API.graphql({ query: deletePlaylistMutation, variables: { input: { id } }});
       const newUserPlaylistsArray = userPlaylists.filter(p => p.id !== id);
@@ -162,9 +166,26 @@ const Playlist = () => {
       } 
       setSelectedPlaylist(newUserPlaylistsArray[0])
     } catch (error){
-      console.error('[playlists] delete error', error.errors[0].message);
+      console.error('[playlists] delete error', { error });
     }
   }
+
+  const updateItem = async () => {
+    try {
+      const updateItemInput ={ id: editItemFormData.id, content: editItemFormData.content }
+      const { data:updateItem } = await API.graphql({ query: updateItemMutation, variables: { input: updateItemInput}});
+      for (const i in playlistItems) {
+        if (playlistItems[i].id == editItemFormData.id) {
+          playlistItems[i].content = editItemFormData.content;
+          break; 
+        }
+      }
+      setShowEditItem('');
+    } catch (error) {
+      console.error('[playlists] updateItem error', { error });
+    }
+  }
+
 
   const deleteItem = async (id) => {
     try{
@@ -183,6 +204,7 @@ const Playlist = () => {
       fetchPlaylistItems(newPlaylist)
       console.log("selectedPlaylist", selectedPlaylist);
       setSelectedPlaylist(newPlaylist);
+      setEditPlaylistFormData(newPlaylist)
     }
   }
 
@@ -190,27 +212,27 @@ const Playlist = () => {
     setShowCreatePlaylist(!showCreatePlaylist);
   }
 
-  const toggleShowCreateItem = () => {
-    setShowCreateItem(!showCreateItem);
+
+  const toggleShowEditPlaylist = () => {
+    setEditPlaylistFormData(selectedPlaylist)
+    setShowEditPlaylist(!showEditPlaylist);
   }
 
   const toggleShowDeletePlaylist = () => {
     setShowDeletePlaylist(!showDeletePlaylist);
   }
 
-  function createData(name, calories, fat, carbs, protein) {
-    return { name, calories, fat, carbs, protein };
+  const toggleShowCreateItem = () => {
+    setShowCreateItem(!showCreateItem);
   }
 
-  const rows = [
-    createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-    createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-    createData('Eclair', 262, 16.0, 24, 6.0),
-    createData('Cupcake', 305, 3.7, 67, 4.3),
-    createData('Gingerbread', 356, 16.0, 49, 3.9),
-  ];
+  const toggleShowEditItem = (item) => {
+    setEditItemFormData(item)
+    setShowEditItem(item.id);
+  }
 
-  if(loading){
+
+  if(loadingPlaylists){
     return( 
       <div className="Loading">
         <CircularProgress />
@@ -236,9 +258,9 @@ const Playlist = () => {
                         <CardContent style={{paddingTop: '50px'}}>
                           <TextField
                             id="playlist-title-text-field"
-                            onChange={e => setPlaylistFormData({ ...playlistFormData, 'title': e.target.value})}
+                            onChange={e => setCreatePlaylistFormData({ ...createPlaylistFormData, 'title': e.target.value})}
                             placeholder="New Playlist"
-                            value={playlistFormData.title}
+                            value={createPlaylistFormData.title}
                             inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                             inputProps={{style: { textAlign: 'center' }}}                              
                           />
@@ -294,20 +316,20 @@ const Playlist = () => {
                             <TableCell>Public:</TableCell>
                             <TableCell>{selectedPlaylist.public.toString().charAt(0).toUpperCase() + selectedPlaylist.public.toString().slice(1)}</TableCell>                      
                             <TableCell>Followers:</TableCell>
-                            <TableCell>{selectedPlaylist.followers.length}</TableCell>
+                            <TableCell>{selectedPlaylist.followers.length - 1}</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
                     </Grid>
-                    <Grid item xs={2} >
+                    {/* <Grid item xs={2} >
                       <Card style={playlistCard}>
                         { showCreateItem ?
                           <CardContent style={{paddingTop: '50px'}}>
                             <TextField
                               id="playlist-title-text-field"
-                              onChange={e => setItemFormData({ ...itemFormData, 'content': e.target.value})}
+                              onChange={e => setCreateItemForm({ ...createItemFormData, 'content': e.target.value})}
                               placeholder="New Item"
-                              value={itemFormData.title}
+                              value={createItemFormData.title}
                               inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                               inputProps={{style: { textAlign: 'center' }}}                              
                             />
@@ -326,16 +348,45 @@ const Playlist = () => {
                           </CardContent>
                         }
                       </ Card>
-                    </Grid>
+                    </Grid> */}
                     <Grid item xs={2} >
                       <Card style={playlistCard}>
-                        <CardContent style={{paddingTop: '50px'}}>
-                          <IconButton>                            
-                            <EditIcon onClick={toggleShowCreatePlaylist}/>
-                          </IconButton>
-                        </CardContent>
+                        { showEditPlaylist ?
+                          <CardContent >
+                            <TextField
+                              id="playlist-title-text-field"
+                              onChange={e => setEditPlaylistFormData({ ...editPlaylistFormData, 'title': e.target.value})}
+                              placeholder="New Item"
+                              value={editPlaylistFormData.title}
+                              label={'Edit Title'}
+                              inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
+                              inputProps={{style: { textAlign: 'center' }}}                              
+                            />
+                            <Grid item xs={12} style={{paddingTop: '6px', paddingBottom:'0px'}}>
+                              <Typography variant={'caption'} style={{float: 'left', paddingTop: '10px', paddingBottom: '4px', color:'gray'}}>Public: </Typography>
+                              <Switch
+                                checked={editPlaylistFormData.public}
+                                onChange={e => setEditPlaylistFormData({ ...editPlaylistFormData, 'public': !editPlaylistFormData.public})}
+                                name="public"
+                                inputProps={{ 'aria-label': 'secondary checkbox' }}
+                              />
+                            </Grid>
+                            <IconButton style={{paddingTop: '4px', paddingBottom: '4px'}}>                            
+                              <SaveOutlinedIcon onClick={updatePlaylist}/>
+                            </IconButton>                          
+                            <IconButton style={{paddingTop: '4px', paddingBottom: '4px'}}>                            
+                              <CancelOutlinedIcon onClick={toggleShowEditPlaylist}/>
+                            </IconButton>
+                          </CardContent>
+                          :
+                          <CardContent style={{paddingTop: '50px'}}>
+                            <IconButton size='large'>                            
+                              <EditIcon onClick={toggleShowEditPlaylist}/>
+                            </IconButton>
+                          </CardContent>
+                        }
                       </ Card>
-                      </Grid>
+                    </Grid>
                     <Grid item xs={2} >
                       <Card style={playlistCard}>
                         <CardContent style={{paddingTop: '50px'}}>
@@ -381,49 +432,119 @@ const Playlist = () => {
                       <Divider style={{marginBottom: '16px'}}/>
                       <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
                       <Typography variant='h4' style={{float: 'left', marginBottom: '16px'}}>{selectedPlaylist.title} Items</Typography>
-                      <TableContainer component={Paper}>
-                        <Table  aria-label="simple table">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Item</TableCell>
-                              <TableCell>Owner</TableCell>
-                              <TableCell>Created At</TableCell>
-                              <TableCell>Last Updated</TableCell>
-                              <TableCell>Edit</TableCell>
-                              <TableCell >Delete</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {playlistItems.map((i) => (
-                              <TableRow key={i.id}>
-                                <TableCell component="th" scope="row">
-                                  {i.content}
-                                </TableCell>
-                                <TableCell>                                
-                                  {i.owner}
-                                </TableCell>
-                                <TableCell>                                
-                                  {i.createdAt.toString().slice(0, 10)}
-                                </TableCell>
-                                <TableCell>                                
-                                  {i.updatedAt.toString().slice(0, 10)}
-                                </TableCell>
-                                <TableCell >       
-                                  <IconButton aria-label="edit item" component="span">
-                                    <EditIcon />
-                                  </IconButton>
-                                </TableCell>
-                                <TableCell >
-                                  <IconButton aria-label="delete item" component="span">
-                                    <DeleteIcon onClick={() => deleteItem(i.id)}/>
-                                  </IconButton>
-                                </TableCell>
+                      {/* <TableContainer component={Paper}>
+
+                      { loadingPlaylistItems ?
+                        <Skeleton height={60} width={'100%'} animation="wave" />
+                          :
+
+                          <Table  aria-label="simple table">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Item</TableCell>
+                                <TableCell>Created At</TableCell>
+                                <TableCell>Last Updated</TableCell>
+                                <TableCell>Edit</TableCell>
+                                <TableCell>Delete</TableCell>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                      </Grid>
+                            </TableHead>
+                            <TableBody>
+                              {playlistItems.map((i) => (
+                                <TableRow key={i.id}>
+                                  <TableCell component="th" scope="row">
+                                    {i.content}
+                                  </TableCell>
+                                  <TableCell>                                
+                                    {i.createdAt.toString().slice(0, 10)}
+                                  </TableCell>
+                                  <TableCell>                                
+                                    {i.updatedAt.toString().slice(0, 10)}
+                                  </TableCell>
+                                  <TableCell >       
+                                    <IconButton aria-label="edit item" component="span">
+                                      <EditIcon onClick={() => toggleShowEditItem(i.id)}/>
+                                    </IconButton>
+                                  </TableCell>
+                                  <TableCell >
+                                    <IconButton aria-label="delete item" component="span">
+                                      <DeleteIcon onClick={() => deleteItem(i.id)}/>
+                                    </IconButton>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                      }
+                      </TableContainer> */}
+                      <Grid container spacing={4} style={{marginBottom: '16px'}}>
+                        <Grid item key={'create-item'} xs={12} md={2}>
+                          <Card style={playlistCard}>
+                            { showCreateItem ?
+                              <CardContent style={{paddingTop: '50px'}}>
+                                <TextField
+                                  id="new-item-text-field"
+                                  onChange={e => setCreateItemForm({ ...createItemFormData, 'content': e.target.value})}
+                                  placeholder="New Item"
+                                  value={createItemFormData.title}
+                                  inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
+                                  inputProps={{style: { textAlign: 'center' }}}                              
+                                />
+                                <IconButton >                            
+                                  <SaveOutlinedIcon onClick={createItem}/>
+                                </IconButton>                          
+                                <IconButton>                            
+                                  <CancelOutlinedIcon onClick={toggleShowCreateItem}/>
+                                </IconButton>
+                              </CardContent>
+                              :
+                              <CardContent style={{paddingTop: '50px'}}>
+                                <IconButton size='large'>                            
+                                  <AddIcon onClick={toggleShowCreateItem}/>
+                                </IconButton>
+                              </CardContent>
+                            }
+                          </ Card>
+                        </Grid>
+                        { playlistItems.map(item => (
+                          <Grid item key={item.id} xs={12} md={2}>
+                             <Card style={playlistCard}>
+                              { showEditItem === item.id ?
+                                <CardContent >
+                                  <Button   
+                                    size='small'
+                                    startIcon={<DeleteIcon />}
+                                    onClick={() => deleteItem(item.id)}
+                                    style={{marginBottom: '8px'}}
+                                  >Delete</Button>
+                                  <TextField
+                                    id="playlist-title-text-field"
+                                    onChange={e => setEditItemFormData({ ...editItemFormData, 'content': e.target.value})}
+                                    value={editItemFormData.content}
+                                    label={'Edit Item'}
+                                    inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
+                                    inputProps={{style: { textAlign: 'center' }}}      
+                                    style={{marginBottom: '8px'}}                        
+                                  />
+
+                                  <IconButton style={{paddingTop: '4px', paddingBottom: '4px'}}>                            
+                                    <SaveOutlinedIcon onClick={updateItem}/>
+                                  </IconButton>                          
+                                  <IconButton style={{paddingTop: '4px', paddingBottom: '4px'}}>                            
+                                    <CancelOutlinedIcon onClick={() => toggleShowEditItem({id: ''})}/>
+                                  </IconButton>
+                                </CardContent>
+                                :
+                                <CardContent style={{paddingTop: '50px'}}>
+                                  <IconButton size='large' onClick={() => toggleShowEditItem(item)}>                            
+                                    <Typography>{item.content}</Typography>
+                                  </IconButton>
+                                </CardContent>
+                              }
+                            </ Card>
+                          </Grid>
+                        ))}
+                      </Grid> 
+                    </Grid>
                   </React.Fragment>
                 :
                   null
