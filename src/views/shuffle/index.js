@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../../App.css';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, Auth, graphqlOperation } from 'aws-amplify';
 import { listPlaylists, listItems } from '../../graphql/queries';
 import { compareArrays, shuffleData, sortObjectsAlphabetically } from '../../util/helperFunctions.js';
 
@@ -48,8 +48,9 @@ const Shuffle = () => {
   
   const fetchPlaylists = async () => {
       try{
-        const apiData = await API.graphql({ query: listPlaylists });
-        const sortedPlaylists = sortObjectsAlphabetically(apiData.data.listPlaylists.items, "title");
+        const { username } = await Auth.currentUserInfo();
+        const { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: {followers: {contains: username} }}));
+        const sortedPlaylists = sortObjectsAlphabetically(data.listPlaylists.items, "title");
         setAllPlaylists(sortedPlaylists);
         let initialChecked = [];
         initialChecked.push(sortedPlaylists[0].id);
@@ -65,10 +66,11 @@ const Shuffle = () => {
     try{
 
       let shuffleDataInput;
-      let updateActivePlaylists = compareArrays(checkedPlaylists, activePlaylists)
+      let playlistSetUpToDate = compareArrays(checkedPlaylists, activePlaylists)
 
-      if(!updateActivePlaylists || activeItems.length < 1){
-        const { data } = await API.graphql(graphqlOperation(listItems, {filter: { itemPlaylistId:  {in: checkedPlaylists} }}));
+      if(!playlistSetUpToDate || activeItems.length < 1){
+
+        const { data } = await API.graphql(graphqlOperation(listItems, {filter: { itemPlaylistId:  {in: checkedPlaylists }}}));
         shuffleDataInput = data.listItems.items;
         setActivePlaylists(checkedPlaylists);
         setAllItems(shuffleDataInput)
@@ -117,7 +119,7 @@ const Shuffle = () => {
 
   if(loading){
     return( 
-      <div className="Loading">
+      <div className="loading-container">
         <CircularProgress />
       </div>
     )

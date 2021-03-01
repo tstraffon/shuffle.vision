@@ -83,7 +83,13 @@ export const listPlaylists = /* GraphQL */ `
         title
         public
         items {
-          nextToken
+          items {
+            content
+            createdAt
+            id
+            owner
+            updatedAt
+          }
         }
         followers
         createdAt

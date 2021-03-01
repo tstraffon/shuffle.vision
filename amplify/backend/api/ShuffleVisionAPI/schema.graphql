@@ -6,7 +6,7 @@ type Item @model
  }
 
 type Playlist @model
-@auth(rules: [{allow: owner, queries: null}]){
+@auth(rules: [{allow: owner, operations: [create, delete]}]){
   id: ID!
   title: String!
   public: Boolean!

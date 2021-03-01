@@ -2,183 +2,364 @@ import React, { useEffect, useState } from 'react';
 import '../../App.css';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { listPlaylists, listItems } from '../../graphql/queries';
-import { 
-  createPlaylist as createPlaylistMutation, 
-  deletePlaylist as deletePlaylistMutation, 
-  createItem as createItemMutation, 
-  deleteItem as deleteItemMutation, 
-} from '../../graphql/mutations';
+import { updatePlaylist as updatePlaylistMutation } from '../../graphql/mutations';
 import { 
   Button,
   Card,
   CardContent,
   CardHeader,
-  Checkbox,
   CircularProgress,
   Divider,
   Grid,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Radio,
-  RadioGroup,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography 
 }from '@material-ui/core';
 import Reorder from '@material-ui/icons/PlaylistPlay';
-import FeaturedPlayListIcon from '@material-ui/icons/FeaturedPlayList';
+import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined';
 import PublicIcon from '@material-ui/icons/Public';
-import DeleteIcon from '@material-ui/icons/Delete';
-import AddIcon from '@material-ui/icons/Add';
-import EditIcon from '@material-ui/icons/Edit';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
+import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import theme from '../../theme';
 
-
-const initialFormState = { title: ''}
-const initialItemState = { content: ''}
 const cardHeaderStyle = { backgroundColor: theme.palette.primary.main, float:'left', color:'white', fontSize:'16px', width:'100%' }
+const cardContentStyle = { overflow: 'scroll', overflowX: 'hidden', maxHeight:'450px'}
+
+const playlistCard = { height: '150px', width: '150px', alignItems: 'center'}
+const playlistCardContent = { paddingTop:'42px'}
 
 const Playlist = () => {
-  const [ loading, setLoading ] = React.useState(true);
-  const [showCreatePlaylist, setShowCreatePlaylist ] = React.useState(false);
+  const [loadingPlaylists, setLoadingPlaylists] = React.useState(true);
+  const [loadingPlaylistItems, setLoadingPlaylistItems] = React.useState(true);
+  const [loadingUserPlaylists, setLoadingUserPlaylists] = React.useState(true);
+  const [loadingUserPlaylistItems, setLoadingUserPlaylistItems] = React.useState(true);
+  const [allPlaylists, setAllPlaylists] = React.useState([]);
   const [userPlaylists, setUserPlaylists] = React.useState([]);
-  const [selectedPlaylist, setSelectedPlaylist] = React.useState({});
+  const [users, setUsers] = React.useState([]);
+  const [selectedPlaylist, setSelectedPlaylist] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState(false);
+  const [selectedUserPlaylist, setSelectedUserPlaylist] = React.useState(false);
   const [playlistItems, setPlaylistItems] = React.useState([]);
-
-  const [formData, setFormData] = useState(initialFormState);
-  const [itemData, setItemData] = useState(initialItemState);
+  const [userPlaylistItems, setUserPlaylistItems] = React.useState([]);
 
 
   useEffect(async () => {
     await fetchPlaylists();
-    setLoading(false);
   }, [])
 
 
   const fetchPlaylists = async () => {
-      // const apiData = await API.graphql({ query: listPlaylists, variables, });
       try {
+        setLoadingPlaylists(true)
         const { username } = await Auth.currentUserInfo() 
-        const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { owner:  {eq: username} }}));
-        console.log('fetchPlaylists data', data);
-        setUserPlaylists(data.listPlaylists.items);
+        const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { followers:  {notContains: username}, public: {eq: true} }}));
+        const uniqueUsers = [...new Set(data.listPlaylists.items.map(playlist => playlist.owner))];
+        console.log(data.listPlaylists.items)
+        setUsers(uniqueUsers);
+        setAllPlaylists(data.listPlaylists.items);
+        setLoadingPlaylists(false)
       } catch(error) {
         console.error('[playlist-fetchPlaylists] error', error);
       }
   }
 
-  const fetchPlaylistItems = async (playlist) => {
-    // const apiData = await API.graphql({ query: listPlaylists, variables, });
-    try {
-      const  { data } = await API.graphql(graphqlOperation(listItems, {filter: { playlistID:  {eq: playlist.id} }}));
-      console.log('fetchPlaylistItems data', data);
-      setPlaylistItems(data.listItems.items);
-    } catch(error) {
-      console.error('[playlist-fetchPlaylistItems] error', error);
-    }
-}
 
-
-
-  const createPlaylist = async () => {
-    try {
-      if (!formData.title) return;
-      console.log('[playlists] createPlaylist Input',  formData);
-
-      const { data:createPlaylistResult } = await API.graphql({ query: createPlaylistMutation, variables: { input: formData } });
-      console.log('[playlists] createPlaylistResult', createPlaylistResult);
-
-      formData['id'] = createPlaylistResult.createPlaylist.id;
-      setUserPlaylists([ ...userPlaylists, formData ]);
-      setFormData(initialFormState);
-    } catch (error) {
-      console.error('[playlists] createPlaylist error', error);
-    }
-
-  }
-
-  const createItem = async () => {
-    try {
-      if (!itemData.content) return;
-  
-      const { data:createItemResult } = await API.graphql({ query: createItemMutation, variables: { input: itemData } });
-      itemData['id'] = createItemResult.createItem.id;
-
-      setItemData(initialItemState);
-    } catch (error) {
-    }
-  }
-
-  const deletePlaylist = async ({ id }) => {
-    const newUserPlaylistsArray = userPlaylists.filter(p => p.id !== id);
-    setUserPlaylists(newUserPlaylistsArray);
-    await API.graphql({ query: deletePlaylistMutation, variables: { input: { id } }});
-  }
-
-  const deleteItem = async (id) => {
+  const toggleSelectedPlaylist = async (playlist) => {
     try{
-      console.log('delete item w/ id', id);
-      const newplaylistItemsArray = playlistItems.filter(p => p.id !== id);
-      setPlaylistItems(newplaylistItemsArray);
-      const { data } = await API.graphql({ query: deleteItemMutation, variables: { input: { id } }});
-      console.log('delete item ', data);
-
-    } catch (error) {
+      console.log("new selected playlist", playlist)
+      if(!playlist){
+        setSelectedPlaylist(false);
+        return;
+      }
+      setSelectedPlaylist(playlist);
+      setLoadingPlaylistItems(true)
+      const  { data } = await API.graphql(graphqlOperation(listItems, {filter: { itemPlaylistId:  {eq: playlist.id} }}));
+      setPlaylistItems(data.listItems.items);
+      setLoadingPlaylistItems(false)
+    } catch (error){
+      console.error('select playlist error', error);
     }
   }
 
-  const toggleSelectedPlaylist = (newPlaylist) => {
-    fetchPlaylistItems(newPlaylist)
-    setSelectedPlaylist(newPlaylist);
+  const toggleSelectedUserPlaylist = async (playlist) => {
+    try{
+      if(!playlist){
+        setSelectedUserPlaylist(false);
+        return;
+      }
+      setLoadingUserPlaylistItems(true)
+      setSelectedUserPlaylist(playlist);
+      const  { data } = await API.graphql(graphqlOperation(listItems, {filter: { itemPlaylistId:  {eq: playlist.id} }}));
+      console.log('fetchPlaylistItems data', data);
+      setUserPlaylistItems(data.listItems.items);
+      setLoadingUserPlaylistItems(false)
+    } catch (error){
+      console.error('select playlist error', error);
+    }
   }
 
-  const toggleShowCreatePlaylist = () => {
-    setShowCreatePlaylist(!showCreatePlaylist);
+  const selectUser = async (user) => {
+    try{
+      setSelectedUser(user);
+      setLoadingUserPlaylists(true)
+      const  { data } = await API.graphql(graphqlOperation(listPlaylists, { filter: { owner:  { eq: user }, public: { eq: true } }}));
+      setUserPlaylists(data.listPlaylists.items);
+      setLoadingUserPlaylists(false)
+      console.log('[browse] selectUser result', data);
+    } catch (error){
+      setSelectedUser(false);
+      console.error('[browse] selectUser error', { error });
+    }
   }
 
-  function createData(name, calories, fat, carbs, protein) {
-    return { name, calories, fat, carbs, protein };
+  const deselectUser = () => {
+    setSelectedUser(false);
+    setSelectedUserPlaylist(false);
   }
 
-  const rows = [
-    createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-    createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-    createData('Eclair', 262, 16.0, 24, 6.0),
-    createData('Cupcake', 305, 3.7, 67, 4.3),
-    createData('Gingerbread', 356, 16.0, 49, 3.9),
-  ];
 
-  if(loading){
-    return( 
-      <div className="Loading">
-        <CircularProgress />
-      </div>
-    )
-  } 
+  const followPlaylist = async (playlist) => {
+    try{
+      console.log('[browse] followPlaylist playlist', playlist);
+
+      const { username } = await Auth.currentUserInfo() 
+      if(playlist.followers.includes(username)){
+        return;
+      }
+      let followersInput = playlist.followers;
+      followersInput.push(username);
+      const followPlaylistInput = { id: playlist.id, followers: followersInput }
+      console.log('[browse] followPlaylist uboyt', followPlaylistInput);
+      const  { data } = await API.graphql({ query: updatePlaylistMutation, variables: { input: followPlaylistInput }});
+      // setUserPlaylists(data.listPlaylists.items);
+      console.log('[browse] followPlaylist result', data);
+    } catch (error){
+      console.error('[browse] followPlaylist error', { error });
+    }
+  }
+
 
   return (
     <div className='view-container'>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Card position="fixed" color="primary">
+          <Card position="fixed" style={{ backgroundColor: '#efefee' }}>
             <CardHeader
               avatar={<PublicIcon size='large' />}
-              title={<span style={{float: 'left', fontSize:'24px'}}>Browse</span>}
+              title={<span style={{float: 'left', fontSize:'24px'}}>Browse by Playlist</span>}
               style={cardHeaderStyle}
             />
             <CardContent >
               <Grid container spacing={4}>
-                <Grid item xs={12}>
-                  <Divider />
-                </Grid> 
+                <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                  <Reorder size='small' style={{paddingRight:'16px', float:'left'}} />
+                  <Typography variant='h4' style={{float: 'left', }}>Top Playlists</Typography>
+                </Grid>  
+                { loadingPlaylists ?
+                  <div style={{height:'25vh', width:'100%'}}>
+                    <div className="loading-container">
+                      <CircularProgress />
+                    </div>
+                  </div>
+                :
+                  <React.Fragment style={cardContentStyle}>
+                    { allPlaylists.map(p => (
+                      <Grid item key={p.id} xs={12} sm={6} md={3} lg={2}>
+                        <Card 
+                          onClick={() => toggleSelectedPlaylist(p)} 
+                          style={p.id === selectedPlaylist.id ? { 
+                            ...playlistCard, 
+                            backgroundColor: theme.palette.primary.main, 
+                            color:'#FFF'} 
+                          : 
+                            playlistCard}
+                        >
+                          <CardContent style={playlistCardContent}>
+                            <Typography>{p.title}</Typography>
+                            <Typography variant='body2'>{p.owner}</Typography>
+                            <Typography variant='body2'>{p.items.items.length} item{p.items.items.length !== 1 ? "s" : null}</Typography>
+                            <Typography variant='body2'>{p.followers.length - 1} follower{p.followers.length !== 0 ? "s" : null}</Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </React.Fragment>
+                }
+                { selectedPlaylist ?
+                  <React.Fragment>
+                    <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                      <Divider style={{marginBottom: '16px'}}/>
+                      <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
+                      <Typography variant='h4' style={{float: 'left', paddingRight:'16px' }}>{selectedPlaylist.title} Items</Typography>
+                      <Typography variant='body2' style={{float: 'left', paddingTop:'4px'}}>{playlistItems.length} total</Typography>
+                      <Button   
+                        size='medium'
+                        startIcon={<CancelOutlinedIcon />}
+                        onClick={() => toggleSelectedPlaylist(false)}
+                        style={{float: 'right'}}
+                      >Close</Button>
+                      <Button     
+                        size='medium'
+                        startIcon={<SubscriptionsIcon />}
+                        onClick={() => followPlaylist(selectedUserPlaylist)}
+                        style={{float: 'right', marginRight: '16px'}}
+                      >Follow Playlist</Button>
+                    </Grid>  
+                    { loadingPlaylistItems ?
+                        <div style={{height:'25vh', width:'100%'}}>
+                          <div className="loading-container">
+                            <CircularProgress />
+                          </div>
+                        </div>
+                      :
+                        <React.Fragment>
+                          { playlistItems.map(item => (
+                            <Grid item key={item.id} xs={12} md={2}>
+                              <Card style={playlistCard}>
+                                <CardContent style={{paddingTop: '60px'}}>
+                                    <Typography>{item.content}</Typography>
+                                </CardContent>
+                              </ Card>
+                            </Grid>
+                          ))}
+                        </React.Fragment>
+                    }
+                  </React.Fragment>
+                :
+                  null
+                }
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
+          <Card position="fixed" color="primary">
+            <CardHeader
+              avatar={<PublicIcon size='large' />}
+              title={<span style={{float: 'left', fontSize:'24px'}}>Browse by User</span>}
+              style={cardHeaderStyle}
+            />
+            <CardContent >
+              <Grid container spacing={4}>
+                <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                  <AccountCircleIcon size='small' style={{paddingRight:'16px', float:'left'}} />
+                  <Typography variant='h4' style={{float: 'left' }}>Users</Typography>
+                </Grid>  
+                { loadingPlaylists ?
+                    <div style={{height:'25vh', width:'100%'}}>
+                      <div className="loading-container">
+                        <CircularProgress />
+                      </div>
+                    </div>
+                  :
+                    <React.Fragment>
+                      {users.map(user => (
+                        <Grid item key={user} xs={12} md={2}>
+                          <Card 
+                            onClick={() => selectUser(user)} 
+                            style={user === selectedUser ? { 
+                              ...playlistCard, 
+                              backgroundColor: theme.palette.primary.main, 
+                              color:'#FFF'} 
+                            : 
+                              playlistCard}
+                          >                            
+                            <CardContent style={playlistCardContent}>
+                              <Typography>{user}</Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </React.Fragment>
+                }
+                  { selectedUser ?
+                  <React.Fragment>
+                    <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                      <Divider style={{marginBottom: '16px'}}/>
+                      <Reorder size='small' style={{paddingRight:'16px', float:'left'}} />
+                      <Typography variant='h4' style={{float: 'left', }}>{selectedUser} Playlists</Typography>
+                      <Button   
+                        size='medium'
+                        startIcon={<CancelOutlinedIcon />}
+                        onClick={deselectUser}
+                        style={{float: 'right'}}
+                      >Close</Button>
+                    </Grid>  
+                    { loadingUserPlaylists ?
+                        <div style={{height:'25vh', width:'100%'}}>
+                          <div className="loading-container">
+                            <CircularProgress />
+                          </div>
+                        </div>
+                      :
+                        <React.Fragment>
+                          { userPlaylists.map(p => (
+                            <Grid item key={p.id} xs={12} md={2}>
+                              <Card 
+                                onClick={() => toggleSelectedUserPlaylist(p)} 
+                                style={p.id === selectedUserPlaylist.id ? { 
+                                  ...playlistCard, 
+                                  backgroundColor: theme.palette.primary.main, 
+                                  color:'#FFF'} 
+                                : 
+                                  playlistCard}
+                              >
+                                <CardContent style={playlistCardContent}>
+                                  <Typography>{p.title}</Typography>
+                                  <Typography variant='body2'>{p.items.items.length} item{p.items.items.length !== 1 ? "s" : null}</Typography>
+                                  <Typography variant='body2'>{p.followers.length - 1} follower{p.followers.length !== 0 ? "s" : null}</Typography>
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          ))}
+                        </React.Fragment>
+                    }
+                  </React.Fragment>
+                  :
+                   null
+                }
+                { selectedUserPlaylist ?
+                  <React.Fragment>
+                    <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                      <Divider style={{marginBottom: '16px'}}/>
+                      <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
+                      <Typography variant='h4' style={{float: 'left', paddingRight:'16px' }}>{selectedUserPlaylist.title} Items</Typography>
+                      <Typography variant='body2' style={{float: 'left', paddingTop:'4px'}}>{userPlaylistItems.length} total</Typography>
+                      <Button   
+                        size='medium'
+                        startIcon={<CancelOutlinedIcon />}
+                        onClick={() => toggleSelectedUserPlaylist(false)}
+                        style={{float: 'right'}}
+                      >Close</Button>
+                      <Button     
+                        size='medium'
+                        startIcon={<SubscriptionsIcon />}
+                        onClick={() => followPlaylist(selectedUserPlaylist)}
+                        style={{float: 'right', marginRight: '16px'}}
+                      >Follow Playlist</Button>
+                    </Grid>  
+                    { loadingUserPlaylistItems ?
+                        <div style={{height:'25vh', width:'100%'}}>
+                          <div className="loading-container">
+                            <CircularProgress />
+                          </div>
+                        </div>
+                      :
+                      <React.Fragment>
+                        { userPlaylistItems.map(item => (
+                          <Grid item key={item.id} xs={12} md={2}>
+                            <Card style={playlistCard}>
+                              <CardContent style={{paddingTop: '60px'}}>
+                                  <Typography>{item.content}</Typography>
+                              </CardContent>
+                            </ Card>
+                          </Grid>
+                        ))}
+                      </React.Fragment>
+                    }
+                  </React.Fragment>
+                :
+                  null
+                }
               </Grid>
             </CardContent>
           </Card>
