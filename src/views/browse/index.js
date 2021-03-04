@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import '../../App.css';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { listPlaylists, listItems } from '../../graphql/queries';
@@ -22,10 +22,8 @@ import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import theme from '../../theme';
 
 const cardHeaderStyle = { backgroundColor: theme.palette.primary.main, float:'left', color:'white', fontSize:'16px', width:'100%' }
-const cardContentStyle = { overflow: 'scroll', overflowX: 'hidden', maxHeight:'450px'}
 
-const playlistCard = { height: '150px', width: '150px', alignItems: 'center'}
-const playlistCardContent = { paddingTop:'42px'}
+const playlistCard = { height: '150px', width: '150px', alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF', display: 'flex', justifyContent: 'center'}
 
 const Playlist = () => {
   const [loadingPlaylists, setLoadingPlaylists] = React.useState(true);
@@ -42,8 +40,11 @@ const Playlist = () => {
   const [userPlaylistItems, setUserPlaylistItems] = React.useState([]);
 
 
-  useEffect(async () => {
-    await fetchPlaylists();
+  useEffect(() => {
+    async function fetchData(){
+      await fetchPlaylists();
+    }
+    fetchData();
   }, [])
 
 
@@ -142,7 +143,7 @@ const Playlist = () => {
     <div className='view-container'>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Card position="fixed" style={{ backgroundColor: '#efefee' }}>
+          <Card position="fixed" style={{playlistCard}} >
             <CardHeader
               avatar={<PublicIcon size='large' />}
               title={<span style={{float: 'left', fontSize:'24px'}}>Browse by Playlist</span>}
@@ -161,19 +162,19 @@ const Playlist = () => {
                     </div>
                   </div>
                 :
-                  <React.Fragment style={cardContentStyle}>
+                  <React.Fragment >
                     { allPlaylists.map(p => (
                       <Grid item key={p.id} xs={12} sm={6} md={3} lg={2}>
                         <Card 
                           onClick={() => toggleSelectedPlaylist(p)} 
                           style={p.id === selectedPlaylist.id ? { 
                             ...playlistCard, 
-                            backgroundColor: theme.palette.primary.main, 
+                            backgroundColor: theme.palette.secondary.main, 
                             color:'#FFF'} 
                           : 
                             playlistCard}
                         >
-                          <CardContent style={playlistCardContent}>
+                          <CardContent >
                             <Typography>{p.title}</Typography>
                             <Typography variant='body2'>{p.owner}</Typography>
                             <Typography variant='body2'>{p.items.items.length} item{p.items.items.length !== 1 ? "s" : null}</Typography>
@@ -200,7 +201,7 @@ const Playlist = () => {
                       <Button     
                         size='medium'
                         startIcon={<SubscriptionsIcon />}
-                        onClick={() => followPlaylist(selectedUserPlaylist)}
+                        onClick={() => followPlaylist(selectedPlaylist)}
                         style={{float: 'right', marginRight: '16px'}}
                       >Follow Playlist</Button>
                     </Grid>  
@@ -215,7 +216,7 @@ const Playlist = () => {
                           { playlistItems.map(item => (
                             <Grid item key={item.id} xs={12} md={2}>
                               <Card style={playlistCard}>
-                                <CardContent style={{paddingTop: '60px'}}>
+                                <CardContent >
                                     <Typography>{item.content}</Typography>
                                 </CardContent>
                               </ Card>
@@ -258,12 +259,12 @@ const Playlist = () => {
                             onClick={() => selectUser(user)} 
                             style={user === selectedUser ? { 
                               ...playlistCard, 
-                              backgroundColor: theme.palette.primary.main, 
+                              backgroundColor: theme.palette.secondary.main, 
                               color:'#FFF'} 
                             : 
                               playlistCard}
                           >                            
-                            <CardContent style={playlistCardContent}>
+                            <CardContent >
                               <Typography>{user}</Typography>
                             </CardContent>
                           </Card>
@@ -298,12 +299,12 @@ const Playlist = () => {
                                 onClick={() => toggleSelectedUserPlaylist(p)} 
                                 style={p.id === selectedUserPlaylist.id ? { 
                                   ...playlistCard, 
-                                  backgroundColor: theme.palette.primary.main, 
+                                  backgroundColor: theme.palette.secondary.main, 
                                   color:'#FFF'} 
                                 : 
                                   playlistCard}
                               >
-                                <CardContent style={playlistCardContent}>
+                                <CardContent >
                                   <Typography>{p.title}</Typography>
                                   <Typography variant='body2'>{p.items.items.length} item{p.items.items.length !== 1 ? "s" : null}</Typography>
                                   <Typography variant='body2'>{p.followers.length - 1} follower{p.followers.length !== 0 ? "s" : null}</Typography>
@@ -348,7 +349,7 @@ const Playlist = () => {
                         { userPlaylistItems.map(item => (
                           <Grid item key={item.id} xs={12} md={2}>
                             <Card style={playlistCard}>
-                              <CardContent style={{paddingTop: '60px'}}>
+                              <CardContent >
                                   <Typography>{item.content}</Typography>
                               </CardContent>
                             </ Card>

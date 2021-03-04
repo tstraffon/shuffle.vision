@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import { Auth } from 'aws-amplify';
 import { withAuthenticator } from '@aws-amplify/ui-react';
@@ -20,12 +20,13 @@ import {
 // styles
 const navMenutItem = {color: "white", paddingLeft:'16px'}
 const navBar = { 
-  width: '100%',
+  width: '17%',
   height: '100%',
+  flexGrow: 1,
   backgroundColor: theme.palette.primary.main,
   paddingTop: '32px',
   color: 'white',
-  /* position: absolute; */
+  position: 'fixed',
 }
 
 const signOut = async () => {
@@ -42,7 +43,7 @@ function App() {
     <div className="App">
       <BrowserRouter bassname="/">
         <Grid container spacing={8} justify="center">
-          <Grid item xs={3} sm={3} style={{paddingTop: '0px'}}>    
+          <Grid item xs={2} style={{paddingTop: '0px'}}>    
             <div style={navBar}>
               <h1>shuffle.vision</h1>
               <Box p={2} style={{paddingLeft: '0px', paddingRight: '0px'}}>
@@ -81,7 +82,7 @@ function App() {
               </Box>
             </div>
           </Grid>
-          <Grid item xs={9} style={{paddingRight: '96px'}}>  
+          <Grid item xs={10} style={{paddingRight: '96px', paddingLeft: '96px'}}>  
             <div className={"content-container"}>
               <Switch>
                 <Route exact path ="/" render={()=> <Shuffle/>}></Route>

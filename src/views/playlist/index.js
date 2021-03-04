@@ -46,13 +46,12 @@ import theme from '../../theme';
 const initialCreatePlaylistFormData = { id: '', title: '', public: true, followers: [] }
 
 const initialItemState = { id: '', content: ''}
-const playlistCard = { height: '150px', width: '150px', alignItems: 'center'}
-const playlistCardContent = { paddingTop:'62px'}
+const playlistCard = { height: '150px', width: '150px', alignItems: 'center', backgroundColor:'#dae0e6', display: 'flex', justifyContent: 'center'  }
 const cardHeaderStyle = { backgroundColor: theme.palette.primary.main, float:'left', color:'white', fontSize:'16px', width:'100%' }
 
 const Playlist = () => {
   const [loadingPlaylists, setLoadingPlaylists] = React.useState(true);
-  const [loadingPlaylistItems, setLoadingPlaylistItems] = React.useState(true);
+  const [loadingPlaylistItems, setLoadingPlaylistItems] = React.useState(false);
   const [loadingCreatePlaylist, setLoadingCreatePlaylist] = React.useState(false);
   const [loadingCreateItem, setLoadingCreateItem] = React.useState(false);
   const [userPlaylists, setUserPlaylists] = React.useState([]);
@@ -65,13 +64,24 @@ const Playlist = () => {
   const [showDeletePlaylist, setShowDeletePlaylist ] = React.useState(false);
   const [showCreateItem, setShowCreateItem ] = React.useState(false);
   const [showEditItem, setShowEditItem ] = React.useState('');
+  const [showItemActions, setShowItemActions] = React.useState('');
   const [createItemFormData, setCreateItemForm] = useState(initialItemState);
   const [editItemFormData, setEditItemFormData] = useState(initialItemState);
+  const [loadingFollowedPlaylists, setLoadingFollowedPlaylists] = React.useState(true);
+  const [loadingFollowedPlaylistItems, setLoadingFollowedPlaylistItems] = React.useState(true);
+  const [selectedFollowedPlaylist, setSelectedFollowedPlaylist] = React.useState(null);
+  const [followedPlaylists, setFollowedPlaylists] = React.useState([]);
+  const [followedPlaylistItems, setFollowedPlaylistItems] = React.useState([]);
 
 
-  useEffect(async () => {
-    await fetchPlaylists();
-    setLoadingPlaylists(false);
+  useEffect( () => {
+    async function fetchData (){
+      await fetchPlaylists();
+      await fetchFollowedPlaylists();
+      setLoadingPlaylists(false);
+      setLoadingFollowedPlaylists(false);
+    }
+    fetchData();
   }, [])
 
 
@@ -92,11 +102,13 @@ const Playlist = () => {
 
   const fetchPlaylistItems = async (playlist) => {
     try {
+      console.log("fetchPlaylistItems start")
       setLoadingPlaylistItems(true);
       const playlistId = playlist.id;
       const  { data } = await API.graphql(graphqlOperation(listItems, { filter: { itemPlaylistId: { eq: playlistId }}}));
       setPlaylistItems(data.listItems.items);
       setLoadingPlaylistItems(false);
+      console.log("fetchPlaylistItems end", loadingPlaylistItems)
     } catch(error) {
       setLoadingPlaylistItems(false);
       console.error('[playlist-fetchPlaylistItems] error', { error });
@@ -149,7 +161,7 @@ const Playlist = () => {
   const updatePlaylist = async () => {
     try {
       const updatePlaylistInput ={ id: selectedPlaylist.id, title: editPlaylistFormData.title, public: editPlaylistFormData.public }
-      const { data:updatePlaylist } = await API.graphql({ query: updatePlaylistMutation, variables: { input: updatePlaylistInput}});
+      await API.graphql({ query: updatePlaylistMutation, variables: { input: updatePlaylistInput}});
       setShowEditPlaylist(false);
       setSelectedPlaylist(editPlaylistFormData);
     } catch (error) {
@@ -180,9 +192,9 @@ const Playlist = () => {
   const updateItem = async () => {
     try {
       const updateItemInput = { id: editItemFormData.id, content: editItemFormData.content }
-      const { data:updateItem } = await API.graphql({ query: updateItemMutation, variables: { input: updateItemInput}});
+      await API.graphql({ query: updateItemMutation, variables: { input: updateItemInput}});
       for (const i in playlistItems) {
-        if (playlistItems[i].id == editItemFormData.id) {
+        if (playlistItems[i].id === editItemFormData.id) {
           playlistItems[i].content = editItemFormData.content;
           break; 
         }
@@ -206,12 +218,49 @@ const Playlist = () => {
     }
   }
 
+  const fetchFollowedPlaylists = async () => {
+    try {
+      const { username } = await Auth.currentUserInfo() 
+      const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { followers:  {contains: username}, owner: {ne: username} }}));
+      const sortedData = sortObjectsAlphabetically(data.listPlaylists.items, "title");
+      setFollowedPlaylists(sortedData);
+      if(sortedData.length){
+        setSelectedFollowedPlaylist(sortedData[0]);
+        fetchFollowedPlaylistItems(sortedData[0])
+      } 
+    } catch(error) {
+      console.error('[playlist-fetchFollowedPlaylists] error', { error });
+    }
+  }
+
+  const fetchFollowedPlaylistItems = async (playlist) => {
+    try {
+      setLoadingFollowedPlaylistItems(true);
+      const playlistId = playlist.id;
+      const  { data } = await API.graphql(graphqlOperation(listItems, { filter: { itemPlaylistId: { eq: playlistId }}}));
+      setFollowedPlaylistItems(data.listItems.items);
+      setLoadingFollowedPlaylistItems(false);
+    } catch(error) {
+      setLoadingFollowedPlaylistItems(false);
+      console.error('[playlist-fetchFollowedPlaylistItems] error', { error });
+    }
+}
+
+
   const toggleSelectedPlaylist = async (newPlaylist) => {
 
     if(newPlaylist.id !== selectedPlaylist.id){
       setSelectedPlaylist(newPlaylist);
       await fetchPlaylistItems(newPlaylist)
       setEditPlaylistFormData(newPlaylist)
+    }
+  }
+
+  const toggleSelectedFollowedPlaylist = async (newPlaylist) => {
+
+    if(newPlaylist.id !== selectedFollowedPlaylist.id){
+      setSelectedFollowedPlaylist(newPlaylist);
+      await fetchFollowedPlaylistItems(newPlaylist)
     }
   }
 
@@ -238,12 +287,16 @@ const Playlist = () => {
     setShowEditItem(item.id);
   }
 
+  const toggleShowItemActions = (item) => {
+    setShowItemActions(item.id);
+  }
+
 
   return (
     <div className='view-container'>
       <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Card position="fixed" style={{ backgroundColor: '#efefee' }}>
+        <Grid item xs={12} >
+          <Card position="fixed" >
             <CardHeader
               avatar={<Reorder size='large' />}
               title={<span style={{float: 'left', fontSize:'24px'}}>Your Playlists</span>}
@@ -257,11 +310,11 @@ const Playlist = () => {
               </CardContent >
             :
               <CardContent >
-                <Grid container spacing={4} style={{marginBottom: '16px'}}>
+                <Grid container spacing={4} style={{maxHeight: '600px', overflow:'scroll', overflowX:'hidden'}}>
                   <Grid item key={'create-playlist'} xs={12} md={2}>
                     <Card style={playlistCard}>
                         { showCreatePlaylist ?
-                          <CardContent style={{paddingTop: '50px'}}>
+                          <CardContent >
                             { loadingCreatePlaylist ?
                                 <div className="loading-container"> 
                                   <CircularProgress />
@@ -273,7 +326,6 @@ const Playlist = () => {
                                   onChange={e => setCreatePlaylistFormData({ ...createPlaylistFormData, 'title': e.target.value})}
                                   placeholder="New Playlist"
                                   value={createPlaylistFormData.title}
-                                  inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                                   inputProps={{style: { textAlign: 'center' }}}                              
                                 />
                                 <IconButton>                            
@@ -286,7 +338,7 @@ const Playlist = () => {
                             }
                           </CardContent>
                           :
-                          <CardContent style={{paddingTop: '50px'}}>
+                          <CardContent >
                             <IconButton>                            
                               <AddIcon onClick={toggleShowCreatePlaylist}/>
                             </IconButton>
@@ -297,13 +349,14 @@ const Playlist = () => {
                   </Grid>
                   { userPlaylists.map(p => (
                     <Grid item key={p.id} xs={12} md={2}>
-                      <Card onClick={() => toggleSelectedPlaylist(p)} style={p.id === selectedPlaylist.id ? { ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'} : playlistCard}>
-                        <CardContent  style={playlistCardContent}>
+                      <Card onClick={() => toggleSelectedPlaylist(p)} style={p.id === selectedPlaylist.id ? { ...playlistCard, backgroundColor: theme.palette.secondary.main, color:'#000'} : { ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
+                        <CardContent  >
                           <Typography>{p.title}</Typography>
                         </CardContent>
                       </Card>
                     </Grid>
                   ))}
+
                   {selectedPlaylist ?
                     <React.Fragment>
                       <Grid item xs={12} style={{paddingBottom: '0px'}}>
@@ -345,7 +398,6 @@ const Playlist = () => {
                                 placeholder="New Item"
                                 value={editPlaylistFormData.title}
                                 label={'Edit Title'}
-                                inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                                 inputProps={{style: { textAlign: 'center' }}}                              
                               />
                               <Grid item xs={12} style={{paddingTop: '6px', paddingBottom:'0px'}}>
@@ -365,7 +417,7 @@ const Playlist = () => {
                               </IconButton>
                             </CardContent>
                             :
-                            <CardContent style={{paddingTop: '50px'}}>
+                            <CardContent >
                               <IconButton size='large'>                            
                                 <EditIcon onClick={toggleShowEditPlaylist}/>
                               </IconButton>
@@ -375,7 +427,7 @@ const Playlist = () => {
                       </Grid>
                       <Grid item xs={2} >
                         <Card style={playlistCard}>
-                          <CardContent style={{paddingTop: '50px'}}>
+                          <CardContent >
                             <IconButton size='large'>                            
                               <PublishIcon onClick={toggleShowDeletePlaylist}/>
                             </IconButton>
@@ -384,7 +436,7 @@ const Playlist = () => {
                       </Grid>
                       <Grid item xs={2} >
                         <Card style={playlistCard}>
-                          <CardContent style={{paddingTop: '50px'}}>
+                          <CardContent >
                             <IconButton>                            
                               <DeleteIcon onClick={toggleShowDeletePlaylist}/>
                             </IconButton>
@@ -423,7 +475,7 @@ const Playlist = () => {
                           </CardContent>                        
                         </Card>                    
                       </Modal>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} >
                         <Divider style={{marginBottom: '16px'}}/>
                         <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
                         <Typography variant='h4' style={{float: 'left', marginBottom: '16px'}}>{selectedPlaylist.title} Items</Typography>
@@ -438,7 +490,7 @@ const Playlist = () => {
                             <Grid item key={'create-item'} xs={12} md={2}>
                               <Card style={playlistCard}>
                                 { showCreateItem ?
-                                  <CardContent style={{paddingTop: '50px'}}>
+                                  <CardContent >
                                     { loadingCreateItem ?
                                         <div className="loading-container"> 
                                           <CircularProgress />
@@ -450,7 +502,6 @@ const Playlist = () => {
                                             onChange={e => setCreateItemForm({ ...createItemFormData, 'content': e.target.value})}
                                             placeholder="New Item"
                                             value={createItemFormData.title}
-                                            inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                                             inputProps={{style: { textAlign: 'center' }}}                              
                                           />
                                           <IconButton >                            
@@ -464,7 +515,7 @@ const Playlist = () => {
                                     }
                                   </CardContent>
                                   :
-                                  <CardContent style={{paddingTop: '50px'}}>
+                                  <CardContent >
                                     <IconButton size='large'>                            
                                       <AddIcon onClick={toggleShowCreateItem}/>
                                     </IconButton>
@@ -474,39 +525,129 @@ const Playlist = () => {
                             </Grid>
                             { playlistItems.map(item => (
                               <Grid item key={item.id} xs={12} md={2}>
-                                <Card style={playlistCard}>
+                                <Card style={{...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF', }}>
                                   { showEditItem === item.id ?
-                                    <CardContent >
-                                      <Button   
-                                        size='small'
-                                        startIcon={<DeleteIcon />}
-                                        onClick={() => deleteItem(item.id)}
-                                        style={{marginBottom: '8px'}}
-                                      >Delete</Button>
+                                    <CardContent>
                                       <TextField
                                         id="playlist-title-text-field"
                                         onChange={e => setEditItemFormData({ ...editItemFormData, 'content': e.target.value})}
                                         value={editItemFormData.content}
-                                        label={'Edit Item'}
-                                        inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
-                                        inputProps={{style: { textAlign: 'center' }}}      
-                                        style={{marginBottom: '8px'}}                        
+                                        inputProps={{style: { 'aria-label': 'bare', textAlign: 'center', color:'#FFF' }}}      
                                       />
-
-                                      <IconButton style={{paddingTop: '4px', paddingBottom: '4px'}}>                            
+                                      <IconButton style={{color:'#FFF'}}>                            
                                         <SaveOutlinedIcon onClick={updateItem}/>
                                       </IconButton>                          
-                                      <IconButton style={{paddingTop: '4px', paddingBottom: '4px'}}>                            
+                                      <IconButton style={{color:'#FFF'}}>                            
                                         <CancelOutlinedIcon onClick={() => toggleShowEditItem({id: ''})}/>
                                       </IconButton>
                                     </CardContent>
                                     :
-                                    <CardContent style={{paddingTop: '50px'}}>
-                                      <IconButton size='large' onClick={() => toggleShowEditItem(item)}>                            
-                                        <Typography>{item.content}</Typography>
-                                      </IconButton>
+                                    <CardContent onMouseEnter={() => toggleShowItemActions(item)} onMouseLeave={() => toggleShowItemActions({id: ''})}>
+                                      <Typography>{item.content}</Typography>
+                                      { showItemActions === item.id ?
+                                        <React.Fragment >
+                                          <IconButton style={{color:'#FFF'}}>                            
+                                            <EditIcon onClick={() => toggleShowEditItem(item)}/>
+                                          </IconButton>                          
+                                          <IconButton style={{color: '#FFF'}}>                            
+                                            <DeleteIcon onClick={() => deleteItem(item.id)}/>
+                                          </IconButton>
+
+                                        </React.Fragment>
+                                        :
+                                        null
+                                      }
                                     </CardContent>
                                   }
+                                </ Card>
+                              </Grid>
+                            ))}
+                          </Grid> 
+                        }
+                      </Grid>
+                    </React.Fragment>
+                  :
+                    null
+                  }
+                </Grid>
+              </CardContent>
+            }
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
+          <Card position="fixed" >
+            <CardHeader
+              avatar={<Reorder size='large' />}
+              title={<span style={{float: 'left', fontSize:'24px'}}>Playlists You Follow </span>}
+              style={cardHeaderStyle}
+            />
+            { loadingFollowedPlaylists ?
+              <CardContent style={{height: '50vh'}}>
+                <div className="loading-container"> 
+                  <CircularProgress />
+                </div>
+              </CardContent >
+            :
+              <CardContent >
+                <Grid container spacing={4} style={{marginBottom: '16px'}}>
+                  { followedPlaylists.map(p => (
+                    <Grid item key={p.id} xs={12} md={2}>
+                      <Card onClick={() => toggleSelectedFollowedPlaylist(p)} style={p.id === selectedFollowedPlaylist.id ? { ...playlistCard, backgroundColor: theme.palette.secondary.main, color:'#000'} : { ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
+                        <CardContent  >
+                          <Typography>{p.title}</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                  {selectedFollowedPlaylist ?
+                    <React.Fragment>
+                      <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                        <Divider style={{marginBottom: '16px'}}/>
+                        <SearchIcon size='small' style={{paddingRight:'16px', float:'left'}} />
+                        <Typography variant='h4' style={{float: 'left', }}>{selectedFollowedPlaylist.title} Details</Typography>
+                      </Grid>  
+                      <Grid item xs={6} >
+                        <Table>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>Owner: </TableCell>
+                              <TableCell >{selectedFollowedPlaylist.owner}</TableCell>
+                              <TableCell>Created At:</TableCell>
+                              <TableCell>{selectedFollowedPlaylist.createdAt.toString().slice(0, 10)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Item Count: </TableCell>
+                              <TableCell>{playlistItems.length}</TableCell>
+                              <TableCell>Last Updated:</TableCell>
+                              <TableCell>{selectedFollowedPlaylist.updatedAt.toString().slice(0, 10)}</TableCell>
+                            </TableRow>
+                            <TableRow style={{borderBottom: 'hidden'}}>
+                              <TableCell>Public:</TableCell>
+                              <TableCell>{selectedFollowedPlaylist.public.toString().charAt(0).toUpperCase() + selectedFollowedPlaylist.public.toString().slice(1)}</TableCell>                      
+                              <TableCell>Followers:</TableCell>
+                              <TableCell>{selectedFollowedPlaylist.followers.length - 1}</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Divider style={{marginBottom: '16px'}}/>
+                        <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
+                        <Typography variant='h4' style={{float: 'left', marginBottom: '16px'}}>{selectedFollowedPlaylist.title} Items</Typography>
+                        { loadingFollowedPlaylistItems ?
+                          <div style={{height:'25vh', width:'80%'}}>
+                            <div className="loading-container"> 
+                              <CircularProgress />
+                            </div>
+                          </div>
+                          :
+                          <Grid container spacing={4} style={{marginBottom: '16px'}}>
+                            { followedPlaylistItems.map(item => (
+                              <Grid item key={item.id} xs={12} md={2}>
+                                <Card style={{...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF', }}>
+                                  <CardContent>
+                                      <Typography>{item.content}</Typography>
+                                    </CardContent>
                                 </ Card>
                               </Grid>
                             ))}
