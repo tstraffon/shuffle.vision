@@ -17,6 +17,7 @@ import {
   Shuffle, 
 } from "./views/index.js";
 
+
 // styles
 const navMenutItem = {color: "white", paddingLeft:'16px'}
 const navBar = { 
@@ -42,7 +43,7 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter bassname="/">
-        <Grid container spacing={8} justify="center">
+        <Grid container spacing={8} style={{maxHeight: '100vh'}} justify="center">
           <Grid item xs={2} style={{paddingTop: '0px'}}>    
             <div style={navBar}>
               <h1>shuffle.vision</h1>
@@ -66,7 +67,7 @@ function App() {
                     </ListItemIcon>
                     <Typography variant="inherit">Browse</Typography>
                   </MenuItem>
-                  <MenuItem component={NavLink} to={"/browse"} >
+                  <MenuItem component={NavLink} to={"/profile"} >
                     <ListItemIcon style={navMenutItem}>
                       <AccountCircleIcon fontSize="large" />
                     </ListItemIcon>
@@ -82,12 +83,13 @@ function App() {
               </Box>
             </div>
           </Grid>
-          <Grid item xs={10} style={{paddingRight: '96px', paddingLeft: '96px'}}>  
+          <Grid item xs={10} style={{paddingRight: '96px', paddingLeft: '96px', maxHeight: '100vh' }}>  
             <div className={"content-container"}>
               <Switch>
                 <Route exact path ="/" render={()=> <Shuffle/>}></Route>
                 <Route path ="/playlists" render={()=> <Playlist />}></Route> 
                 <Route path ="/browse" render={()=> <Browse />}></Route> 
+                <Route path ="/profile" render={()=> <Playlist />}></Route> 
               </Switch> 
             </div>
           </Grid>

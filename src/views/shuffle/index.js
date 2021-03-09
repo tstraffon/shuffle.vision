@@ -185,7 +185,7 @@ const Shuffle = () => {
                     <FormControlLabel value="Cards" control={<Radio color='primary'/>} label="Cards" style={{ float: 'left'}}/>
                     <FormControlLabel value="Block" control={<Radio  color='primary'/>} label="Block" style={{ float: 'left'}} />
                   </RadioGroup>
-                  <FormLabel component="legend" style={{paddingTop: '8px'}}>Item Count</FormLabel>
+                  <FormLabel component="legend" style={{padding: '8px'}}>Item Count</FormLabel>
                   <Grid item key={'card-count-select'} sm={12}>
                     <Grid container spacing={2} style={{paddingTop: '4px'}}>
                       <Grid item key={'card-count-slider'} sm={8}>
