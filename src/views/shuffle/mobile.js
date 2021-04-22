@@ -298,7 +298,7 @@ const Shuffle = () => {
                 <Grid item key={'blockDisplay'} xs={12}>
                   <Card style={{padding:'16px', backgroundColor: theme.palette.primary.main, alignItems: 'center', display: 'flex', justifyContent: 'center' }}>
                     <CardContent style={{ color:'#FFF',  }}>
-                      <Typography variant='h3' >{activeItems.map(i => (i.content + ' '))}</Typography>
+                      <Typography >{activeItems.map(i => (i.content + ' '))}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
