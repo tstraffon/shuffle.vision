@@ -19,12 +19,14 @@ import Reorder from '@material-ui/icons/PlaylistPlay';
 import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
+import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import theme from '../../theme';
 
 
 const playlistCard = { height: '150px', width: '150px', alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF', display: 'flex', justifyContent: 'center'}
+const cardContainer = {justifyContent: 'center', display: 'grid'}
 
-const Playlist = () => {
+const Browse = () => {
   const [loadingPlaylists, setLoadingPlaylists] = React.useState(true);
   const [loadingPlaylistItems, setLoadingPlaylistItems] = React.useState(true);
   const [loadingUserPlaylists, setLoadingUserPlaylists] = React.useState(true);
@@ -38,17 +40,11 @@ const Playlist = () => {
   const [playlistItems, setPlaylistItems] = React.useState([]);
   const [userPlaylistItems, setUserPlaylistItems] = React.useState([]);
   const [tabValue, setTabValue] = React.useState(0);
+  const [loadingFollowPlaylist, setLoadingFollowPlaylist] = React.useState(false);
 
-
+  
   useEffect(() => {
-    async function fetchData(){
-      await fetchPlaylists();
-    }
-    fetchData();
-  }, [])
-
-
-  const fetchPlaylists = async () => {
+    async function fetchBrowseData(){
       try {
         setLoadingPlaylists(true)
         const { username } = await Auth.currentUserInfo() 
@@ -60,11 +56,13 @@ const Playlist = () => {
           setSelectedPlaylist(data.listPlaylists.items[0]);
           toggleSelectedPlaylist(data.listPlaylists.items[0])
         } 
-        setLoadingPlaylists(false)
+        setLoadingPlaylists(false);
       } catch(error) {
-        console.error('[playlist-fetchPlaylists] error', error);
+        setLoadingPlaylists(false);
       }
-  }
+    }
+    fetchBrowseData();
+  }, [])
 
 
   const toggleSelectedPlaylist = async (playlist) => {
@@ -119,6 +117,7 @@ const Playlist = () => {
 
   const followPlaylist = async (playlist) => {
     try{
+      setLoadingFollowPlaylist(true);
       const { username } = await Auth.currentUserInfo() 
       if(playlist.followers.includes(username)){
         return;
@@ -127,11 +126,22 @@ const Playlist = () => {
       followersInput.push(username);
       const followPlaylistInput = { id: playlist.id, followers: followersInput }
       await API.graphql({ query: updatePlaylistMutation, variables: { input: followPlaylistInput }});
-      // setUserPlaylists(data.listPlaylists.items);
+
+      const newAllPlaylistsArray = allPlaylists.filter(p => p.id !== playlist.id);
+      setAllPlaylists(newAllPlaylistsArray);
+
+      const newUserPlaylistsArray = userPlaylists.filter(p => p.id !== playlist.id);
+      setUserPlaylists(newUserPlaylistsArray);
+
+      setSelectedPlaylist(false);
+      setSelectedUserPlaylist(false);
+      setLoadingFollowPlaylist(false);
     } catch (error){
       console.error('[browse] followPlaylist error', { error });
+      setLoadingFollowPlaylist(false);
     }
   }
+
 
   const a11yProps = (index) => {
     return {
@@ -176,7 +186,7 @@ const Playlist = () => {
                         <Typography variant='h4' style={{float: 'left', }}>Top Playlists</Typography>
                       </Grid>  
                       { allPlaylists.map(p => (
-                        <Grid item key={p.id} xs={12} sm={6} md={3} lg={2}>
+                        <Grid item key={p.id} xs={12} sm={6} md={3} lg={2} style={cardContainer}>
                           <Card 
                             onClick={() => toggleSelectedPlaylist(p)} 
                             style={p.id === selectedPlaylist.id ? { ...playlistCard, backgroundColor: theme.palette.secondary.main, color:'#000'} : { ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}} >
@@ -196,12 +206,20 @@ const Playlist = () => {
                             <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
                             <Typography variant='h4' style={{float: 'left', paddingRight:'16px' }}>{selectedPlaylist.title} Items</Typography>
                             <Typography variant='body2' style={{float: 'left', paddingTop:'4px'}}>{playlistItems.length} total</Typography>
-                            <Button     
-                              size='medium'
-                              startIcon={<SubscriptionsIcon />}
-                              onClick={() => followPlaylist(selectedPlaylist)}
-                              style={{float: 'right', marginRight: '16px'}}
-                            >Follow Playlist</Button>
+                            { loadingFollowPlaylist ?
+                              <div className="loading-container" style={{float: 'right', marginRight: '64px', top:'0',}} > 
+                                <CircularProgress />
+                              </div>
+                            :
+                              <React.Fragment>
+                                <Button     
+                                  size='medium'
+                                  startIcon={<SubscriptionsIcon />}
+                                  onClick={() => followPlaylist(selectedPlaylist)}
+                                  style={{float: 'right', marginRight: '16px'}}
+                                >Follow Playlist</Button>
+                              </React.Fragment>
+                            }
                           </Grid>  
                           { loadingPlaylistItems ?
                               <div style={{height:'25vh', width:'100%'}}>
@@ -212,7 +230,7 @@ const Playlist = () => {
                             :
                               <React.Fragment>
                                 { playlistItems.map(item => (
-                                  <Grid item key={item.id} xs={12} md={2}>
+                                  <Grid item key={item.id} xs={12} md={2} style={cardContainer}>
                                     <Card style={playlistCard}>
                                       <CardContent >
                                           <Typography>{item.content}</Typography>
@@ -254,7 +272,7 @@ const Playlist = () => {
                         :
                           <React.Fragment>
                             {users.map(user => (
-                              <Grid item key={user} xs={12} md={2}>
+                              <Grid item key={user} xs={12} md={2} style={cardContainer}>
                                 <Card 
                                   onClick={() => selectUser(user)} 
                                   style={user === selectedUser ? { 
@@ -288,7 +306,7 @@ const Playlist = () => {
                             :
                               <React.Fragment>
                                 { userPlaylists.map(p => (
-                                  <Grid item key={p.id} xs={12} md={2}>
+                                  <Grid item key={p.id} xs={12} md={2} style={cardContainer}>
                                     <Card 
                                       onClick={() => toggleSelectedUserPlaylist(p)} 
                                       style={p.id === selectedUserPlaylist.id ? { 
@@ -319,12 +337,18 @@ const Playlist = () => {
                             <FeaturedPlayListOutlinedIcon size='small' style={{paddingRight:'16px', float:'left'}} />
                             <Typography variant='h4' style={{float: 'left', paddingRight:'16px' }}>{selectedUserPlaylist.title} Items</Typography>
                             <Typography variant='body2' style={{float: 'left', paddingTop:'4px'}}>{userPlaylistItems.length} total</Typography>
-                            <Button     
-                              size='medium'
-                              startIcon={<SubscriptionsIcon />}
-                              onClick={() => followPlaylist(selectedUserPlaylist)}
-                              style={{float: 'right', marginRight: '16px'}}
-                            >Follow Playlist</Button>
+                            { loadingFollowPlaylist ?
+                              <div className="loading-container" style={{float: 'right', marginRight: '16px'}} > 
+                                <CircularProgress />
+                              </div>
+                            :
+                              <Button     
+                                size='medium'
+                                startIcon={<SubscriptionsIcon />}
+                                onClick={() => followPlaylist(selectedUserPlaylist)}
+                                style={{float: 'right', marginRight: '16px'}}
+                              >Follow Playlist</Button>
+                            }
                           </Grid>  
                           { loadingUserPlaylistItems ?
                               <div style={{height:'25vh', width:'100%'}}>
@@ -335,7 +359,7 @@ const Playlist = () => {
                             :
                             <React.Fragment>
                               { userPlaylistItems.map(item => (
-                                <Grid item key={item.id} xs={12} md={2}>
+                                <Grid item key={item.id} xs={12} md={2} style={cardContainer}>
                                   <Card style={playlistCard}>
                                     <CardContent >
                                         <Typography>{item.content}</Typography>
@@ -362,4 +386,4 @@ const Playlist = () => {
 
 }
 
-export default Playlist;
+export default Browse;

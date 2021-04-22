@@ -59,7 +59,7 @@
 }
 
 .modal-card {
-  width: 500px;
+   width: 500px;
    height: 300px;
    margin: auto;
    margin-top: 10%;
@@ -87,4 +87,12 @@
 .view-container{
   padding-top: 64px;
   padding-bottom: 64px;
+}
+
+.mobile-view-container{
+  padding-top: 56px;
+  padding-bottom: 56px;
+  padding-right: 16px;
+  padding-left: 16px;
+  width: 100vw;
 }

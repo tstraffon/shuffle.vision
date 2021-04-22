@@ -27,6 +27,12 @@ import {
   Typography 
 }from '@material-ui/core';
 
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Reorder from '@material-ui/icons/PlaylistPlay';
@@ -40,43 +46,42 @@ const Shuffle = () => {
   const [allPlaylists, setAllPlaylists] = React.useState([]);
   const [activeItems, setActiveItems] = React.useState([]);
   const [allItems, setAllItems] = React.useState([]);
-  const [display, setDisplay] = React.useState('Cards');
+  const [display, setDisplay] = React.useState('Block');
   const [count, setCount] = React.useState(1);
+  const [showShuffleSettings, setShowShuffleSettings] = React.useState(false);
+
 
   useEffect(() => {
-    async function fetchData (){
-      await fetchPlaylists()
-      setLoading(false);
-    }
-    fetchData();
-  }, [])
-  
-  const fetchPlaylists = async () => {
-      try{
+    async function fetchShuffleData (){
+      try {
         const { username } = await Auth.currentUserInfo();
         let { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: {followers: {contains: username}}}));
-        let playlists = data.listPlaylists.items
-        const sortedPlaylists = sortObjectsAlphabetically(playlists, "title");
+        let playlists = data.listPlaylists.items;
+        const sortedPlaylists = await sortObjectsAlphabetically(playlists, "title");
         setAllPlaylists(sortedPlaylists);
         let initialChecked = [];
         initialChecked.push(sortedPlaylists[0].id);
-        setCheckedPlaylists(initialChecked)
-        await shuffleItems(initialChecked)
+        setCheckedPlaylists(initialChecked);
+        await shuffleItems(initialChecked);
+        setLoading(false);
       } catch (error){
-        console.error('[shuffle-fetch-playlists] error', {error})
-      }
-
-  }
+        console.error('[shuffle-fetch-playlists] error', {error});
+        setLoading(false);
+      }      
+    }
+    fetchShuffleData();
+  }, [])
+  
 
   const shuffleItems = async (initialChecked) => {
 
     try{
 
       let shuffleDataInput;
-      let playlistSetUpToDate = compareArrays(checkedPlaylists, activePlaylists)
+      const playlistIDsInput = !initialChecked ? checkedPlaylists : initialChecked;
+      let playlistSetUpToDate = compareArrays(playlistIDsInput, activePlaylists)
 
       if(!playlistSetUpToDate || activeItems.length < 1){
-        const playlistIDsInput = !initialChecked.length ? checkedPlaylists : initialChecked;
         const { data } = await API.graphql(graphqlOperation(listItems, {filter: { itemPlaylistId:  {in: playlistIDsInput }}}));
         shuffleDataInput = data.listItems.items;
         setActivePlaylists(checkedPlaylists);
@@ -112,7 +117,7 @@ const Shuffle = () => {
     shuffleItems();
   }
 
-  const handleToggleCheckedPlaylists = (value) => () => {
+  const handleToggleCheckedPlaylists = (value) => {
     const currentIndex = checkedPlaylists.indexOf(value);
     const newCheckedPlaylists = [...checkedPlaylists];
 
@@ -126,6 +131,26 @@ const Shuffle = () => {
     shuffleItems(newCheckedPlaylists);
   };
 
+  const selectAll = () => {
+    let newChecked = [];
+    for (const p of allPlaylists){
+      newChecked.push(p.id)
+    }
+    setCheckedPlaylists(newChecked);
+    shuffleItems(newChecked);
+  };
+
+  const clear = () =>{
+    let newChecked = [];
+    newChecked.push(allPlaylists[0].id);
+    setCheckedPlaylists(newChecked);
+    shuffleItems(newChecked);
+  };
+
+  const toggleShowShuffleSettings = () =>{
+    setShowShuffleSettings(!showShuffleSettings);
+  };
+
 
   if(loading){
     return( 
@@ -136,45 +161,20 @@ const Shuffle = () => {
   } 
 
   return(
-    <div className='view-container'>
+    <div className='mobile-view-container'>
       <Grid container spacing={4}>
-        <Grid item xs={8}>
-          <Button 
-            onClick={shuffleItems}
-            startIcon={<ShuffleIcon  style={{fontSize:'32pt', paddingBottom: '5px', fontWeight:'bold'}}/>} 
-            color="secondary" 
-            variant='contained' 
-            style={{width:'100%', height: '200px',  fontSize:'28pt', fontWeight:'bold'}}
-          >Shuffle</Button>
-          <Grid container spacing={4} justify="center" style={{marginTop: `32px`, overflow:'scroll', overflowX: 'hidden'}} >
-            { display ==='Cards' ?
-                activeItems.map(i => (
-                    <Grid item key={i.id} xs={12} md={3}>
-                      <Card style={{height: '150px', width: '150px', alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF', display: 'flex', justifyContent: 'center' }}>
-                        <CardContent  >
-                          <Typography>{i.content}</Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                ))
-              :
-                <Grid item key={'blockDisplay'} xs={12}>
-                  <Card style={{height: '400px', backgroundColor: theme.palette.primary.main, alignItems: 'center', display: 'flex', justifyContent: 'center' }}>
-                    <CardContent style={{ width: '50%', color:'#FFF',  }}>
-                      <Typography variant='h3' >{activeItems.map(i => (i.content + ' '))}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-            }
-          </Grid>
-        </Grid>
-        <Grid item xs={4}>
-          <Card position="fixed" color="primary" >
-            <CardContent >
-              <div style={{ paddingBottom: '8px'}}>
-                <SettingsIcon style={{paddingRight:'16px', float:'left'}}/>
-                <Typography style={{float: 'left', marginBottom: '8px'}}>Shuffle Settings</Typography>
-              </div>
+        <Grid item xs={12}>
+          <Accordion expanded={showShuffleSettings} onChange={() => toggleShowShuffleSettings()}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+              style={{margin:'0px', height:'48px'}}
+            >
+              <SettingsIcon fontSize='large' style={{paddingRight:'16px', paddingTop:'12px', float:'left'}}/>  
+              <Typography style={{float: 'left', marginBottom: '8px', paddingTop:'12px'}}>Shuffle Settings</Typography>            
+            </AccordionSummary>
+            <AccordionDetails>
               <Grid container spacing={0}>
                 <Grid item xs={12} style={{paddingBottom: '0px', paddingTop:'0px'}}>
                   <Divider style={{marginBottom: '16px'}}/>
@@ -182,13 +182,13 @@ const Shuffle = () => {
                 <FormControl component="fieldset" style={{width:'100%'}}>
                   <FormLabel component="legend">Display Format</FormLabel>
                   <RadioGroup aria-label="gender" name="gender1" value={display} onChange={handleDisplayChange} style={{ display: 'inline-block'}}>
-                    <FormControlLabel value="Cards" control={<Radio color='primary'/>} label="Cards" style={{ float: 'left'}}/>
                     <FormControlLabel value="Block" control={<Radio  color='primary'/>} label="Block" style={{ float: 'left'}} />
+                    <FormControlLabel value="Cards" control={<Radio color='primary'/>} label="Cards" style={{ float: 'left'}}/>
                   </RadioGroup>
-                  <FormLabel component="legend" style={{padding: '8px'}}>Item Count</FormLabel>
+                  <FormLabel component="legend" style={{paddingTop: '8px', display:'flex', float:'left'}}>Item Count</FormLabel>
                   <Grid item key={'card-count-select'} sm={12}>
-                    <Grid container spacing={2} style={{paddingTop: '4px'}}>
-                      <Grid item key={'card-count-slider'} sm={8}>
+                    <Grid container spacing={2} style={{paddingTop: '12px'}}>
+                      <Grid item key={'card-count-slider'} xs={8}>
                         <Slider
                           value={count}
                           step={1}
@@ -199,23 +199,35 @@ const Shuffle = () => {
                           // max={50}
                         />
                       </Grid>
-                      <Grid item key={'count-text-field'} sm={2}>
+                      <Grid item key={'count-text-field'} xs={2}>
                         <TextField
                           id="count-text-field"
                           value={count}
-                          onChange={handleCountChange}
+                          onChange={() => handleCountChange()}
                           inputProps={{ 'aria-label': 'bare', 'color': "#FFF" }}
                         />
                       </Grid>
-                      <Grid item key={'count-total'} sm={2}>
+                      <Grid item key={'count-total'} xs={2}>
                         <Typography>/ {allItems.length}</Typography>
                       </Grid>
                     </Grid>
                   </Grid> 
                 </FormControl>
                 <Grid item xs={12} style={{ paddingTop: '32px'}}>
-                  <Reorder style={{paddingRight:'16px', float:'left'}} />
-                  <Typography style={{float: 'left', }}>Selected Playlists</Typography>
+                  <Reorder fontSize='large' style={{paddingRight:'16px', paddingBottom:'12px', float:'left'}} />
+                  <Typography style={{float: 'left', marginBottom:'8px'}}>Selected Playlists</Typography>
+                </Grid>                
+                <Grid item xs={6}>
+                  <Button 
+                    onClick={() => clear()}
+                    size="small"
+                  >Clear</Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button 
+                    onClick={() => selectAll()}
+                    size="small"
+                  >Select All</Button>
                 </Grid>
                 <Grid item xs={12} style={{ paddingTop: '8px'}}>
                   <Divider style={{ marginBottom: '8px'}} />
@@ -232,7 +244,7 @@ const Shuffle = () => {
                     {allPlaylists.map((playlist) => {
                       const labelId = `checkbox-list-label-${playlist.title}`;
                       return (
-                        <ListItem key={playlist.title} role={undefined} dense button onClick={handleToggleCheckedPlaylists(playlist.id)} style={{float: 'left', width:'50%', height:'50px', marginBottom:'8px'}}>
+                        <ListItem key={playlist.title} role={undefined} dense button onClick={() => handleToggleCheckedPlaylists(playlist.id)} style={{float: 'left', width:'100%', height:'50px', marginBottom:'8px'}}>
                           <ListItemIcon>
                             <Checkbox
                               edge="start"
@@ -249,9 +261,49 @@ const Shuffle = () => {
                     })}
                   </List>
                 </Grid>
+                <Grid item xs={12}>
+                  <Divider style={{marginBottom:'12px'}} />
+                  <Button 
+                    onClick={() => toggleShowShuffleSettings()}
+                    startIcon={<ExpandLessIcon />} 
+                    style={{width:'100%'}}
+                  >Hide Shuffle Settings</Button>       
+                </Grid>
               </Grid>
-            </CardContent>
-          </Card>
+            </AccordionDetails>
+          </Accordion>
+        </Grid>
+        <Grid item xs={12}>
+          <Button 
+            onClick={() => shuffleItems()}
+            startIcon={<ShuffleIcon  style={{fontSize:'32pt', paddingBottom: '5px', fontWeight:'bold'}}/>} 
+            color="secondary" 
+            variant='contained' 
+            style={{width:'100%', height: '100px',  fontSize:'28pt', fontWeight:'bold'}}
+          >Shuffle</Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Grid container spacing={2} justify="center" style={{ overflow:'scroll', overflowX: 'hidden'}} >
+            { display ==='Cards' ?
+                activeItems.map(i => (
+                    <Grid item key={i.id} xs={6} md={3}>
+                      <Card style={{height: '150px', width: '150px', alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF', display: 'flex', justifyContent: 'center' }}>
+                        <CardContent  >
+                          <Typography >{i.content}</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                ))
+              :
+                <Grid item key={'blockDisplay'} xs={12}>
+                  <Card style={{padding:'16px', backgroundColor: theme.palette.primary.main, alignItems: 'center', display: 'flex', justifyContent: 'center' }}>
+                    <CardContent style={{ color:'#FFF',  }}>
+                      <Typography variant='h3' >{activeItems.map(i => (i.content + ' '))}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+            }
+          </Grid>
         </Grid>
       </Grid>
   </div>
