@@ -162,7 +162,7 @@ const Shuffle = () => {
 
   return(
     <div className='mobile-view-container'>
-      <Grid container spacing={4}>
+      <Grid container spacing={4} justify="center" alignItems="center" >
         <Grid item xs={12}>
           <Accordion expanded={showShuffleSettings} onChange={() => toggleShowShuffleSettings()}>
             <AccordionSummary
@@ -180,7 +180,7 @@ const Shuffle = () => {
                   <Divider style={{marginBottom: '16px'}}/>
                 </Grid>
                 <FormControl component="fieldset" style={{width:'100%'}}>
-                  <FormLabel component="legend">Display Format</FormLabel>
+                  <FormLabel component="legend" style={{display:'flex', float:'left'}}>Display Format</FormLabel>
                   <RadioGroup aria-label="gender" name="gender1" value={display} onChange={handleDisplayChange} style={{ display: 'inline-block'}}>
                     <FormControlLabel value="Block" control={<Radio  color='primary'/>} label="Block" style={{ float: 'left'}} />
                     <FormControlLabel value="Cards" control={<Radio color='primary'/>} label="Cards" style={{ float: 'left'}}/>
