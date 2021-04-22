@@ -365,12 +365,12 @@ const unfollowPlaylist = async (playlist) => {
                                   value={editPlaylistFormData.title}
                                   // label={'Edit Title'}
                                   inputProps={{style: { float: 'left'}}}  
-                                  style={{float:'left'}}                            
+                                  style={{float:'left', width:'50%'}}                            
                                 />
-                                <IconButton onClick={() => toggleShowEditPlaylist()} style={{float: 'right', paddingRight:'8px', top:'-8px'}}>
+                                <IconButton onClick={() => toggleShowEditPlaylist()} style={{float: 'right',  top:'-8px'}}>
                                   <CancelOutlinedIcon />
                                 </IconButton>
-                                <IconButton onClick={() => updatePlaylist()} style={{float: 'right', paddingRight:'8px', top:'-8px'}}>
+                                <IconButton onClick={() => updatePlaylist()} style={{float: 'right',  top:'-8px'}}>
                                   <SaveOutlinedIcon />
                                 </IconButton>
                               </React.Fragment>
@@ -478,10 +478,10 @@ const unfollowPlaylist = async (playlist) => {
                                                 value={createItemFormData.title}
                                                 inputProps={{style: { textAlign: 'center' }}}                              
                                               />
-                                              <IconButton >                            
+                                              <IconButton style={{padding:'10px'}}>                            
                                                 <SaveOutlinedIcon onClick={() => createItem()}/>
                                               </IconButton>                          
-                                              <IconButton>                            
+                                              <IconButton style={{padding:'10px'}}>                            
                                                 <CancelOutlinedIcon onClick={() => toggleShowCreateItem()}/>
                                               </IconButton>
 
@@ -565,10 +565,10 @@ const unfollowPlaylist = async (playlist) => {
                                         value={createPlaylistFormData.title}
                                         inputProps={{style: { textAlign: 'center' }}}                              
                                       />
-                                      <IconButton>                            
+                                      <IconButton style={{padding:'10px'}}>                            
                                         <SaveOutlinedIcon onClick={() => createPlaylist()}/>
                                       </IconButton>                          
-                                      <IconButton>                            
+                                      <IconButton style={{padding:'10px'}}>                            
                                         <CancelOutlinedIcon onClick={() => toggleShowCreatePlaylist()}/>
                                       </IconButton>
                                     </React.Fragment>
