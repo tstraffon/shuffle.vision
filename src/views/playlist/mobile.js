@@ -348,7 +348,7 @@ const unfollowPlaylist = async (playlist) => {
                           <Grid item xs={12} style={{paddingBottom:'8px'}}>
                             <IconButton onClick={() =>  setSelectedPlaylist(false)} style={{float: 'left'}}>
                               <ChevronLeftIcon />
-                              <Typography style={{float: 'left', paddingLeft:'8px'}}>Your Playlists</Typography> 
+                              <Typography style={{float: 'left'}}>Your Playlists</Typography> 
                             </IconButton>
                           </Grid>
                           <Grid item xs={12} style={{paddingBottom:'0px', paddingTop:'0px'}}>
@@ -510,25 +510,25 @@ const unfollowPlaylist = async (playlist) => {
                                             value={editItemFormData.content}
                                             inputProps={{style: { 'aria-label': 'bare', textAlign: 'center', color:'#FFF' }}}      
                                           />
-                                          <IconButton style={{color:'#FFF'}}>                            
-                                            <SaveOutlinedIcon onClick={() => updateItem()}/>
+                                          <IconButton onClick={() => updateItem()} style={{color:'#FFF', padding:'10px'}}>                            
+                                            <SaveOutlinedIcon />
                                           </IconButton>                          
-                                          <IconButton style={{color:'#FFF'}}>                            
-                                            <CancelOutlinedIcon onClick={() => toggleShowEditItem({id: ''})}/>
+                                          <IconButton onClick={() => toggleShowEditItem({id: ''})} style={{color:'#FFF', padding:'10px'}}>                            
+                                            <CancelOutlinedIcon />
                                           </IconButton>
                                         </CardContent>
                                         :
-                                        <CardContent onMouseEnter={() => toggleShowItemActions(item)} onMouseLeave={() => toggleShowItemActions({id: ''})}>
+                                        <CardContent onClick={() => toggleShowItemActions(item)}>
                                           <Typography>{item.content}</Typography>
                                           { showItemActions === item.id ?
                                             <React.Fragment >
-                                              <IconButton style={{color:'#FFF'}}>                            
-                                                <EditIcon onClick={() => toggleShowEditItem(item)}/>
+                                              <IconButton onClick={() => toggleShowEditItem(item)} style={{color:'#FFF', padding:'10px'}}>                            
+                                                <EditIcon />
                                               </IconButton>                          
-                                              <IconButton style={{color: '#FFF'}}>                            
-                                                <DeleteIcon onClick={() => deleteItem(item.id)}/>
+                                              <IconButton onClick={() => deleteItem(item.id)} style={{color: '#FFF', padding:'10px'}}>                            
+                                                <DeleteIcon />
                                               </IconButton>
-
+                            
                                             </React.Fragment>
                                             :
                                             null

@@ -122,10 +122,7 @@ const BrowseMobile = () => {
       followersInput.push(username);
       const followPlaylistInput = { id: playlist.id, followers: followersInput }
       await API.graphql({ query: updatePlaylistMutation, variables: { input: followPlaylistInput }});
-      // setUserPlaylists(data.listPlaylists.items);
-      // let newlyFollowedPlaylists = followPlaylistSuccess;
-      // newlyFollowedPlaylists.push(playlist.id);
-      // setFollowPlaylistSuccess(newlyFollowedPlaylists);
+
       const newAllPlaylistsArray = allPlaylists.filter(p => p.id !== playlist.id);
       setAllPlaylists(newAllPlaylistsArray);
 

@@ -51,8 +51,13 @@ const ShuffleMobile = () => {
         let playlists = data.listPlaylists.items;
         const sortedPlaylists = await sortObjectsAlphabetically(playlists, "title");
         setAllPlaylists(sortedPlaylists);
-        let initialChecked = [];
-        initialChecked.push(sortedPlaylists[0].id);
+        let initialChecked = [], totalCount = 0;
+        for(const p of sortedPlaylists){
+          totalCount = totalCount + p.items.items.length;
+          initialChecked.push(p.id);
+        }
+        const firstCount = totalCount > 50 ? 50 : totalCount;
+        setCount(firstCount);
         setCheckedPlaylists(initialChecked);
         await shuffleItems(initialChecked);
         setLoading(false);

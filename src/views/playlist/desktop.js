@@ -42,6 +42,8 @@ import PublicIcon from '@material-ui/icons/Public';
 import SearchIcon from '@material-ui/icons/Search';
 import SaveOutlinedIcon from '@material-ui/icons/SaveOutlined';
 import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+
 import theme from '../../theme';
 
 
@@ -58,7 +60,7 @@ const Playlist = () => {
   const [loadingCreateItem, setLoadingCreateItem] = React.useState(false);
   const [loadingUnfollowPlaylist, setLoadingUnfollowPlaylist] = React.useState(false);
   const [userPlaylists, setUserPlaylists] = React.useState([]);
-  const [selectedPlaylist, setSelectedPlaylist] = React.useState(null);
+  const [selectedPlaylist, setSelectedPlaylist] = React.useState(false);
   const [playlistItems, setPlaylistItems] = React.useState([]);
   const [showCreatePlaylist, setShowCreatePlaylist ] = React.useState(false);
   const [createPlaylistFormData, setCreatePlaylistFormData] = useState(initialCreatePlaylistFormData);
@@ -131,7 +133,6 @@ const Playlist = () => {
       setCreatePlaylistFormData(initialCreatePlaylistFormData);
       setShowCreatePlaylist(!showCreatePlaylist);
       setPlaylistItems([])
-      setSelectedPlaylist(newPlaylist)
       setLoadingCreatePlaylist(false);
     } catch (error) {
       setLoadingPlaylists(false);
@@ -269,7 +270,7 @@ const unfollowPlaylist = async (playlist) => {
 
   const toggleSelectedPlaylist = async (newPlaylist) => {
 
-    if(newPlaylist.id !== selectedPlaylist.id){
+    if(!selectedPlaylist || newPlaylist.id !== selectedPlaylist.id){
       setSelectedPlaylist(newPlaylist);
       await fetchPlaylistItems(newPlaylist)
       setEditPlaylistFormData(newPlaylist)
@@ -350,63 +351,17 @@ const unfollowPlaylist = async (playlist) => {
                 :
                   <CardContent >
                     <Grid container spacing={4} style={{ overflow:'scroll', overflowX:'hidden'}}>
-                      <Grid item xs={12} style={{paddingBottom: '0px'}}>
-                        <Reorder size='small' style={{paddingRight:'16px', float:'left'}} />
-                        <Typography variant='h4' style={{float: 'left', }}>Playlists</Typography>
-                      </Grid>  
-                      <Grid item key={'create-playlist'} xs={12} md={2} style={cardContainer}>
-                        { showCreatePlaylist ?
-                          <Card style={playlistCard}>
-                            <CardContent >
-                              { loadingCreatePlaylist ?
-                                  <div className="loading-container"> 
-                                    <CircularProgress />
-                                  </div>
-                                :
-                                <React.Fragment>
-                                  <TextField
-                                    id="playlist-title-text-field"
-                                    onChange={e => setCreatePlaylistFormData({ ...createPlaylistFormData, 'title': e.target.value})}
-                                    placeholder="New Playlist"
-                                    value={createPlaylistFormData.title}
-                                    inputProps={{style: { textAlign: 'center' }}}                              
-                                  />
-                                  <IconButton>                            
-                                    <SaveOutlinedIcon onClick={() => createPlaylist()}/>
-                                  </IconButton>                          
-                                  <IconButton>                            
-                                    <CancelOutlinedIcon onClick={() => toggleShowCreatePlaylist()}/>
-                                  </IconButton>
-                                </React.Fragment>
-                              }
-                            </CardContent>
-                          </Card>
-                          :
-                          <Card style={playlistCard} onClick={() => toggleShowCreatePlaylist()}>
-                            <CardContent >
-                              <IconButton>                            
-                                <AddIcon/>
-                              </IconButton>
-                            </CardContent>
-                          </Card>
-                        }
-                      </Grid>
-                      { userPlaylists.map(p => (
-                        <Grid item key={p.id} xs={12} md={2} style={cardContainer}>
-                          <Card onClick={() => toggleSelectedPlaylist(p)} style={p.id === selectedPlaylist.id ? { ...playlistCard, backgroundColor: theme.palette.secondary.main, color:'#000'} : { ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
-                            <CardContent  >
-                              <Typography>{p.title}</Typography>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
                       {selectedPlaylist ?
                         <React.Fragment>
-                          <Grid item xs={12} style={{paddingBottom: '0px'}}>
-                            <Divider style={{marginBottom: '16px'}}/>
-                            {/* <SearchIcon size='small' style={{paddingRight:'16px', float:'left'}} />
-                            <Typography variant='h4' style={{float: 'left', paddingRight:'16px'}}>{selectedPlaylist.title}</Typography> */}
-                          </Grid>  
+                          <Grid item xs={12} style={{paddingBottom:'8px'}}> 
+                            <IconButton onClick={() =>  setSelectedPlaylist(false)} style={{float: 'left'}}>
+                              <ChevronLeftIcon />
+                              <Typography style={{float: 'left', paddingLeft:'8px'}}>Your Playlists</Typography> 
+                            </IconButton>
+                          </Grid>
+                          <Grid item xs={12} style={{paddingBottom:'24px', paddingTop:'0px'}}>
+                            <Divider />
+                          </Grid>       
                           <Grid item xs={6} style={{paddingTop: '0px'}} >
                             <SearchIcon size='small' style={{paddingRight:'16px', float:'left'}} />
                             {showEditPlaylist ? 
@@ -600,7 +555,58 @@ const unfollowPlaylist = async (playlist) => {
                           </Grid>
                         </React.Fragment>
                       :
-                        null
+                        <React.Fragment>
+                           <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                              <Reorder size='small' style={{paddingRight:'16px', float:'left'}} />
+                              <Typography variant='h4' style={{float: 'left', }}>Your Playlists</Typography>
+                            </Grid>  
+                            <Grid item key={'create-playlist'} xs={12} md={2} style={cardContainer}>
+                              { showCreatePlaylist ?
+                                <Card style={playlistCard}>
+                                  <CardContent >
+                                    { loadingCreatePlaylist ?
+                                        <div className="loading-container"> 
+                                          <CircularProgress />
+                                        </div>
+                                      :
+                                      <React.Fragment>
+                                        <TextField
+                                          id="playlist-title-text-field"
+                                          onChange={e => setCreatePlaylistFormData({ ...createPlaylistFormData, 'title': e.target.value})}
+                                          placeholder="New Playlist"
+                                          value={createPlaylistFormData.title}
+                                          inputProps={{style: { textAlign: 'center' }}}                              
+                                        />
+                                        <IconButton>                            
+                                          <SaveOutlinedIcon onClick={() => createPlaylist()}/>
+                                        </IconButton>                          
+                                        <IconButton>                            
+                                          <CancelOutlinedIcon onClick={() => toggleShowCreatePlaylist()}/>
+                                        </IconButton>
+                                      </React.Fragment>
+                                    }
+                                  </CardContent>
+                                </Card>
+                                :
+                                <Card style={playlistCard} onClick={() => toggleShowCreatePlaylist()}>
+                                  <CardContent >
+                                    <IconButton>                            
+                                      <AddIcon/>
+                                    </IconButton>
+                                  </CardContent>
+                                </Card>
+                              }
+                            </Grid>
+                            { userPlaylists.map(p => (
+                              <Grid item key={p.id} xs={12} md={2} style={cardContainer}>
+                                <Card onClick={() => toggleSelectedPlaylist(p)} style={{ ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
+                                  <CardContent  >
+                                    <Typography>{p.title}</Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                            ))}
+                        </React.Fragment>
                       }
                     </Grid>
                 
