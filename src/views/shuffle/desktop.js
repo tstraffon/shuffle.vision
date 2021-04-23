@@ -20,28 +20,38 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   Radio,
   RadioGroup,
+  Select,
   Slider,
   TextField,
   Typography 
 }from '@material-ui/core';
 
+import {
+  createItemConnector,
+} from '../../util/apiConnectors.js';
+
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Reorder from '@material-ui/icons/PlaylistPlay';
+import AddIcon from '@material-ui/icons/Add';
 import theme from '../../theme';
 
 
 const ShuffleMobile = () => {
   const [loading, setLoading] = React.useState(true);
+  const [loadingCreateItem, setLoadingCreateItem] = React.useState(false);
   const [checkedPlaylists, setCheckedPlaylists] = React.useState([]);
   const [activePlaylists, setActivePlaylists] = React.useState([]);
   const [allPlaylists, setAllPlaylists] = React.useState([]);
+  const [userPlaylists, setUserPlaylists] = React.useState([]);
   const [activeItems, setActiveItems] = React.useState([]);
   const [allItems, setAllItems] = React.useState([]);
   const [display, setDisplay] = React.useState('Block');
-  const [count, setCount] = React.useState(1);
+  const [count, setCount] = React.useState(25);
+  const [newItemFormData, setNewItemFormData] = React.useState({content:'', playlist:''});
 
   useEffect(() => {
     async function fetchShuffleData (){
@@ -51,12 +61,14 @@ const ShuffleMobile = () => {
         let playlists = data.listPlaylists.items;
         const sortedPlaylists = await sortObjectsAlphabetically(playlists, "title");
         setAllPlaylists(sortedPlaylists);
+        const newUsersPlaylists = allPlaylists.filter(p => p.owner === username);
+        setUserPlaylists(newUsersPlaylists);
         let initialChecked = [], totalCount = 0;
         for(const p of sortedPlaylists){
           totalCount = totalCount + p.items.items.length;
           initialChecked.push(p.id);
         }
-        const firstCount = totalCount > 50 ? 50 : totalCount;
+        const firstCount = totalCount > 25 ? 25 : totalCount;
         setCount(firstCount);
         setCheckedPlaylists(initialChecked);
         await shuffleItems(initialChecked);
@@ -137,12 +149,39 @@ const ShuffleMobile = () => {
     shuffleItems(newChecked);
   };
 
-  const clear = () =>{
+  const clearShufflePlaylists = () =>{
     let newChecked = [];
     newChecked.push(allPlaylists[0].id);
     setCheckedPlaylists(newChecked);
     shuffleItems(newChecked);
   };
+
+  const clearCreateItemForm = () =>{
+    console.log("newItemFormData", newItemFormData);
+    setNewItemFormData({ playlist: '', content: ''})
+    let newChecked = [];
+    newChecked.push(allPlaylists[0].id);
+    setCheckedPlaylists(newChecked);
+    shuffleItems(newChecked);
+  };
+
+  const handlePlaylistSelectChange = (event) => {
+    console.log('event', event.target.value)
+    setNewItemFormData({ ...newItemFormData, 'playlist': event.target.value});
+  }
+
+  const createItem = async () => {
+    try {
+      if (!newItemFormData.content || !newItemFormData.playlist) return;
+      setLoadingCreateItem(true);
+      const playlistObj = allPlaylists.filter(p => p.title === newItemFormData.playlist);
+      await createItemConnector(newItemFormData.content, playlistObj[0])
+      setLoadingCreateItem(false);
+      setNewItemFormData({ playlist: '', content: ''})
+    } catch (error) {
+      console.error('[playlist] createItem error', { error });
+    }
+  }
 
 
   if(loading){
@@ -187,6 +226,65 @@ const ShuffleMobile = () => {
           </Grid>
         </Grid>
         <Grid item xs={4}>
+          <Card position="fixed" color="primary" style={{marginBottom: '32px'}} >
+            <CardContent >
+              <div style={{ paddingBottom: '8px'}}>
+                <AddIcon style={{paddingRight:'16px', float:'left'}}/>
+                <Typography style={{float: 'left', marginBottom: '8px'}}>Create New Item</Typography>
+              </div>
+              <Grid container spacing={0}>
+                <Grid item xs={12} style={{paddingBottom: '0px', paddingTop:'0px'}}>
+                  <Divider style={{marginBottom: '16px'}}/>
+                </Grid>
+                <FormControl component="fieldset" style={{width:'100%'}}>
+                  <FormLabel component="legend" style={{paddingBottom: '8px', display:'flex', float:'left'}}>Item Content</FormLabel>
+                  <TextField
+                    id="create-item-text-field"
+                    variant="outlined"
+                    onChange={e => setNewItemFormData({ ...newItemFormData, 'content': e.target.value})}
+                    value={newItemFormData.content}
+                    style={{marginBottom:'16px'}}
+
+                  />
+                  <FormLabel component="legend" style={{paddingBottom: '8px', display:'flex', float:'left'}}>Select Playlist</FormLabel>
+                  <Select
+                    variant='outlined'
+                    color='primary'
+                    value={newItemFormData.playlist}
+                    onChange={handlePlaylistSelectChange}
+                    style={{   textAlign: 'left'}}
+                  >
+                    {userPlaylists.map((playlist) => {
+                      return (
+                        <MenuItem value={playlist.title}>{playlist.title}</MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+                <Grid item xs={6}>
+                  <Button 
+                    onClick={() => clearCreateItemForm()}
+                    variant="outlined"
+                    style={{width:'90%',marginTop:'24px'}}
+                  >Clear</Button>
+                </Grid>
+                <Grid item xs={6} >
+                  { loadingCreateItem ? 
+                    <div className="loading-container">
+                      <CircularProgress />
+                    </div>
+                  :
+                    <Button 
+                      onClick={() => createItem()}
+                      variant="contained"
+                      color='primary'
+                      style={{width:'90%', marginTop:'24px'}}
+                    >Submit</Button>
+                  }
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
           <Card position="fixed" color="primary" >
             <CardContent >
               <div style={{ paddingBottom: '8px'}}>
@@ -234,18 +332,6 @@ const ShuffleMobile = () => {
                 <Grid item xs={12} style={{ paddingTop: '32px'}}>
                   <Reorder style={{paddingRight:'16px', float:'left'}} />
                   <Typography style={{float: 'left', }}>Selected Playlists</Typography>
-                  <Button 
-                    onClick={() => selectAll()}
-                    size="small"
-                    variant="outlined"
-                    style={{float: 'right', marginLeft: '8px', paddingTop:'0px', paddingBottom: '0px'}}
-                  >Select All</Button>
-                  <Button 
-                    onClick={() => clear()}
-                    size="small"
-                    variant="outlined"
-                    style={{float: 'right', paddingTop:'0px', paddingBottom: '0px'}}
-                  >Clear</Button>
                 </Grid>
                 <Grid item xs={12} style={{ paddingTop: '8px'}}>
                   <Divider style={{ marginBottom: '8px'}} />
@@ -258,6 +344,25 @@ const ShuffleMobile = () => {
                       return null
                     }
                   })}
+                </Grid>
+                <Grid item xs={6} style ={{paddingTop:'8px'}}>
+                  <Button 
+                    onClick={() => clearShufflePlaylists()}
+                    size="small"
+                    variant="outlined"
+                    style={{width:'90%'}}
+                  >Clear</Button>
+                </Grid>
+                <Grid item xs={6} style ={{paddingTop:'8px'}}>
+                  <Button 
+                    onClick={() => selectAll()}
+                    size="small"
+                    variant="outlined"
+                    style={{width:'90%'}}
+                  >Select All</Button>
+                </Grid>
+                <Grid item xs={12} style ={{paddingTop:'8px'}}>
+                  <Divider style={{ marginBottom: '8px'}} />
                   <List style={{ display: 'inline-block', paddingTop: '0px'}}>
                     {allPlaylists.map((playlist) => {
                       const labelId = `checkbox-list-label-${playlist.title}`;

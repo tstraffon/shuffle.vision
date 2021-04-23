@@ -20,18 +20,25 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   Radio,
   RadioGroup,
+  Select,
   Slider,
   TextField,
   Typography 
 }from '@material-ui/core';
+
+import {
+  createItemConnector,
+} from '../../util/apiConnectors.js';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import AddIcon from '@material-ui/icons/Add';
 
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -41,14 +48,18 @@ import theme from '../../theme';
 
 const Shuffle = () => {
   const [loading, setLoading] = React.useState(true);
+  const [loadingCreateItem, setLoadingCreateItem] = React.useState(false);
   const [checkedPlaylists, setCheckedPlaylists] = React.useState([]);
   const [activePlaylists, setActivePlaylists] = React.useState([]);
   const [allPlaylists, setAllPlaylists] = React.useState([]);
+  const [userPlaylists, setUserPlaylists] = React.useState([]);
   const [activeItems, setActiveItems] = React.useState([]);
   const [allItems, setAllItems] = React.useState([]);
   const [display, setDisplay] = React.useState('Block');
-  const [count, setCount] = React.useState(1);
+  const [count, setCount] = React.useState(25);
+  const [showCreateNewItem, setShowCreateNewItem] = React.useState(false);
   const [showShuffleSettings, setShowShuffleSettings] = React.useState(false);
+  const [newItemFormData, setNewItemFormData] = React.useState({content:'', playlist:''});
 
 
   useEffect(() => {
@@ -59,8 +70,16 @@ const Shuffle = () => {
         let playlists = data.listPlaylists.items;
         const sortedPlaylists = await sortObjectsAlphabetically(playlists, "title");
         setAllPlaylists(sortedPlaylists);
-        let initialChecked = [];
-        initialChecked.push(sortedPlaylists[0].id);
+        const newUsersPlaylists = sortedPlaylists.filter(p => p.owner === username);
+        setUserPlaylists(newUsersPlaylists);
+
+        let initialChecked = [], totalCount = 0;
+        for(const p of sortedPlaylists){
+          totalCount = totalCount + p.items.items.length;
+          initialChecked.push(p.id);
+        }
+        const firstCount = totalCount > 25 ? 25 : totalCount;
+        setCount(firstCount);
         setCheckedPlaylists(initialChecked);
         await shuffleItems(initialChecked);
         setLoading(false);
@@ -151,6 +170,37 @@ const Shuffle = () => {
     setShowShuffleSettings(!showShuffleSettings);
   };
 
+  const toggleShowCreateNewItem = () =>{
+    setShowCreateNewItem(!showCreateNewItem);
+  };
+
+  const clearCreateItemForm = () =>{
+    console.log("newItemFormData", newItemFormData);
+    setNewItemFormData({ playlist: '', content: ''})
+    let newChecked = [];
+    newChecked.push(allPlaylists[0].id);
+    setCheckedPlaylists(newChecked);
+    shuffleItems(newChecked);
+  };
+
+  const handlePlaylistSelectChange = (event) => {
+    console.log('event', event.target.value)
+    setNewItemFormData({ ...newItemFormData, 'playlist': event.target.value});
+  }
+
+  const createItem = async () => {
+    try {
+      if (!newItemFormData.content || !newItemFormData.playlist) return;
+      setLoadingCreateItem(true);
+      const playlistObj = allPlaylists.filter(p => p.title === newItemFormData.playlist);
+      await createItemConnector(newItemFormData.content, playlistObj[0])
+      setLoadingCreateItem(false);
+      setNewItemFormData({ playlist: '', content: ''})
+    } catch (error) {
+      console.error('[playlist] createItem error', { error });
+    }
+  }
+
 
   if(loading){
     return( 
@@ -163,6 +213,80 @@ const Shuffle = () => {
   return(
     <div className='mobile-view-container'>
       <Grid container spacing={4} justify="center" alignItems="center" >
+        <Grid item xs={12} style={{paddingBottom:'0px'}}>
+          <Accordion expanded={showCreateNewItem} onChange={() => toggleShowCreateNewItem()}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="create-item-content"
+              id="create-item-header"
+              style={{margin:'0px', height:'48px'}}
+            >
+              <AddIcon fontSize='large' style={{paddingRight:'16px', paddingTop:'12px', float:'left'}}/>  
+              <Typography style={{float: 'left', marginBottom: '8px', paddingTop:'12px'}}>Create New Item</Typography>            
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid container spacing={0}>
+                <Grid item xs={12} style={{paddingBottom: '0px', paddingTop:'0px'}}>
+                  <Divider style={{marginBottom: '16px'}}/>
+                </Grid>
+                <FormControl component="fieldset" style={{width:'100%'}}>
+                  <FormLabel component="legend" style={{paddingBottom: '8px', display:'flex', float:'left'}}>Item Content</FormLabel>
+                  <TextField
+                    id="create-item-text-field"
+                    variant="outlined"
+                    onChange={e => setNewItemFormData({ ...newItemFormData, 'content': e.target.value})}
+                    value={newItemFormData.content}
+                    style={{marginBottom:'16px'}}
+
+                  />
+                  <FormLabel component="legend" style={{paddingBottom: '8px', display:'flex', float:'left'}}>Select Playlist</FormLabel>
+                  <Select
+                    variant='outlined'
+                    color='primary'
+                    value={newItemFormData.playlist}
+                    onChange={handlePlaylistSelectChange}
+                    style={{   textAlign: 'left'}}
+                  >
+                    {userPlaylists.map((playlist) => {
+                      return (
+                        <MenuItem value={playlist.title}>{playlist.title}</MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+                <Grid item xs={6}>
+                  <Button 
+                    onClick={() => clearCreateItemForm()}
+                    variant="outlined"
+                    style={{width:'90%',marginTop:'24px'}}
+                  >Clear</Button>
+                </Grid>
+                <Grid item xs={6} >
+                  { loadingCreateItem ? 
+                    <div className="loading-container">
+                      <CircularProgress />
+                    </div>
+                  :
+                    <Button 
+                      onClick={() => createItem()}
+                      variant="contained"
+                      color='primary'
+                      style={{width:'90%', marginTop:'24px'}}
+                    >Submit</Button>
+                  }
+                </Grid>
+                <Grid item xs={12}>
+                  <Divider style={{marginBottom:'12px', marginTop:'24px'}} />
+                  <Button 
+                    onClick={() => toggleShowCreateNewItem()}
+                    startIcon={<ExpandLessIcon />} 
+                    style={{width:'100%'}}
+                  >Hide Create New Item</Button>       
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+        </Grid>
         <Grid item xs={12}>
           <Accordion expanded={showShuffleSettings} onChange={() => toggleShowShuffleSettings()}>
             <AccordionSummary

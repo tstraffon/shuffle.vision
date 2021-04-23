@@ -19,7 +19,6 @@ import Reorder from '@material-ui/icons/PlaylistPlay';
 import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
-import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import theme from '../../theme';
 
 

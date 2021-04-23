@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import '../../App.css';
-import { API, graphqlOperation, Auth } from 'aws-amplify';
-import { listPlaylists, listItems } from '../../graphql/queries';
+
 import { NavLink } from 'react-router-dom';
 
-import { 
-  createPlaylist as createPlaylistMutation, 
-  updateItem as updateItemMutation, 
-  deletePlaylist as deletePlaylistMutation, 
-  createItem as createItemMutation, 
-  updatePlaylist as updatePlaylistMutation, 
-  deleteItem as deleteItemMutation,
-} from '../../graphql/mutations';
+import {
+  createPlaylistConnector,
+  createItemConnector,
+  deleteItemConnector,
+  deletePlaylistConnector,
+  getFollowedPlaylistsConnector,
+  getFollowedPlaylistItemsConnector,
+  getPlaylistsConnector,
+  getPlaylistItemsConnector,
+  updateItemConnector,
+  updatePlaylistConnector,
+  unfollowPlaylistConnector,
+} from '../../util/apiConnectors.js';
 
 import { 
   AppBar,
@@ -32,7 +36,7 @@ import {
   TextField,
   Typography 
 } from '@material-ui/core';
-import { sortObjectsAlphabetically } from '../../util/helperFunctions.js';
+
 import Reorder from '@material-ui/icons/PlaylistPlay';
 import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined'
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -43,9 +47,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import SaveOutlinedIcon from '@material-ui/icons/SaveOutlined';
 import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-
 import theme from '../../theme';
-
 
 const initialCreatePlaylistFormData = { id: '', title: '', public: true, followers: [] }
 
@@ -81,117 +83,88 @@ const Playlist = () => {
 
 
   useEffect( () => {
-    async function fetchPlaylistData (){
+    async function getPlaylists (){
       try {
-        const { username } = await Auth.currentUserInfo() 
-        const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { owner:  {eq: username} }}));
-        const sortedData = sortObjectsAlphabetically(data.listPlaylists.items, "title");
-        setUserPlaylists(sortedData);
-        if(sortedData.length){
-          setSelectedPlaylist(sortedData[0]);
-          fetchPlaylistItems(sortedData[0])
-        } 
+        const playlists = await getPlaylistsConnector();
+        setUserPlaylists(playlists);
         setLoadingPlaylists(false);
         setLoadingFollowedPlaylists(false);
       } catch(error) {
-        console.error('[playlist-fetchPlaylists] error', { error });
+        console.error('[playlist] getPlaylists error', { error });
         setLoadingPlaylists(false);
         setLoadingFollowedPlaylists(false);
       }
     }
-    fetchPlaylistData();
+    getPlaylists();
   }, []);
-
-  const fetchPlaylistItems = async (playlist) => {
-    try {
-      setLoadingPlaylistItems(true);
-      const playlistId = playlist.id;
-      const  { data } = await API.graphql(graphqlOperation(listItems, { filter: { itemPlaylistId: { eq: playlistId }}}));
-      setPlaylistItems(data.listItems.items);
-      setLoadingPlaylistItems(false);
-    } catch(error) {
-      setLoadingPlaylistItems(false);
-      console.error('[playlist-fetchPlaylistItems] error', { error });
-    }
-}
-
 
 
   const createPlaylist = async () => {
     try {
       if (!createPlaylistFormData.title) return;
       setLoadingCreatePlaylist(true);
-      const { username } = await Auth.currentUserInfo() 
-      const createPlaylistInput = {title: createPlaylistFormData.title, public: true, followers: [username] }
-      createPlaylistFormData.followers = [username]
-      const { data } = await API.graphql({ query: createPlaylistMutation, variables: { input: createPlaylistInput } });
-      let newPlaylist = data.createPlaylist
-      newPlaylist['followers'] = [username];
-      const newSortedData = sortObjectsAlphabetically([ ...userPlaylists, newPlaylist ], "title");
-
-      setUserPlaylists(newSortedData);
+      const { newPlaylist, newUserPlaylists} = await createPlaylistConnector(createPlaylistFormData, userPlaylists);
+      setUserPlaylists(newUserPlaylists);
       setCreatePlaylistFormData(initialCreatePlaylistFormData);
       setShowCreatePlaylist(!showCreatePlaylist);
-      setPlaylistItems([])
+      setPlaylistItems([]);
+      setSelectedPlaylist(newPlaylist);
       setLoadingCreatePlaylist(false);
     } catch (error) {
       setLoadingPlaylists(false);
-      console.error('[playlists] createPlaylist error', { error });
+      console.error('[playlist] createPlaylist error', { error });
     }
-
   }
 
   const createItem = async () => {
     try {
       if (!createItemFormData.content || !selectedPlaylist.id) return;
       setLoadingCreateItem(true);
-      const createItemInput = { content: createItemFormData.content, itemPlaylistId: selectedPlaylist.id }
-      const { data:createItemResult } = await API.graphql({ query: createItemMutation, variables: { input: createItemInput}});
-      createItemFormData['id'] = createItemResult.createItem.id;
-      setPlaylistItems([ ...playlistItems, createItemResult.createItem ]);
+      const createdItem = await createItemConnector(createItemFormData.content, selectedPlaylist)
+      createItemFormData['id'] = createdItem.createItem.id;
+      setPlaylistItems([ ...playlistItems, createdItem.createItem ]);
       setLoadingCreateItem(false);
       setShowCreateItem(!setShowCreateItem);
       setCreateItemForm(initialItemState);
     } catch (error) {
-      console.error('[playlists] createItem error', { error });
+      console.error('[playlist] createItem error', { error });
     }
   }
 
   const updatePlaylist = async () => {
     try {
-      const updatePlaylistInput ={ id: selectedPlaylist.id, title: editPlaylistFormData.title, public: editPlaylistFormData.public }
-      await API.graphql({ query: updatePlaylistMutation, variables: { input: updatePlaylistInput}});
+      await updatePlaylistConnector(selectedPlaylist, editPlaylistFormData);
       setShowEditPlaylist(false);
       setSelectedPlaylist(editPlaylistFormData);
+      let newUserPlaylists = userPlaylists;
+      for (const p in userPlaylists) {
+        if (newUserPlaylists[p].id === editPlaylistFormData.id) {
+          newUserPlaylists[p] = editPlaylistFormData;
+          break; 
+        }
+      }
+      setUserPlaylists(newUserPlaylists);
     } catch (error) {
-      console.error('[playlists] updatePlaylist error', { error });
+      console.error('[playlist] updatePlaylist error', { error });
     }
   }
 
   const deletePlaylist = async () => {
-    
     try{
-
       if (!selectedPlaylist.id) return;
-      const { id } = selectedPlaylist;
-      await API.graphql({ query: deletePlaylistMutation, variables: { input: { id } }});
-      const newUserPlaylistsArray = userPlaylists.filter(p => p.id !== id);
+      await deletePlaylistConnector(selectedPlaylist);
+      const newUserPlaylistsArray = userPlaylists.filter(p => p.id !== selectedPlaylist.id);
       setUserPlaylists(newUserPlaylistsArray);
       setShowDeletePlaylist(!showDeletePlaylist);
-      if(newUserPlaylistsArray.length){
-        setSelectedPlaylist(newUserPlaylistsArray[0]);
-        fetchPlaylistItems(newUserPlaylistsArray[0])
-      } 
-      setSelectedPlaylist(newUserPlaylistsArray[0])
+      setSelectedPlaylist(false)
     } catch (error){
-      console.error('[playlists] delete error', { error });
+      console.error('[playlist] deletePlaylist error', { error });
     }
   }
 
   const updateItem = async () => {
     try {
-      const updateItemInput = { id: editItemFormData.id, content: editItemFormData.content }
-      await API.graphql({ query: updateItemMutation, variables: { input: updateItemInput}});
+      await updateItemConnector(editItemFormData)
       for (const i in playlistItems) {
         if (playlistItems[i].id === editItemFormData.id) {
           playlistItems[i].content = editItemFormData.content;
@@ -200,88 +173,79 @@ const Playlist = () => {
       }
       setShowEditItem('');
     } catch (error) {
-      console.error('[playlists] updateItem error', { error });
+      console.error('[playlist] updateItem error', { error });
     }
   }
 
-
-  const deleteItem = async (id) => {
+  const deleteItem = async (itemId) => {
     try{
-      const newplaylistItemsArray = playlistItems.filter(p => p.id !== id);
+      console.log('deleteItem', itemId)
+      await deleteItemConnector(itemId); 
+      const newplaylistItemsArray = playlistItems.filter(p => p.id !== itemId);
       setPlaylistItems(newplaylistItemsArray);
-      await API.graphql({ query: deleteItemMutation, variables: { input: { id } }});
     } catch (error) {
+      console.error('[playlist] deleteItem error', { error });
     }
   }
 
-  const fetchFollowedPlaylists = async () => {
+  const getFollowedPlaylists = async () => {
     try {
-      const { username } = await Auth.currentUserInfo() 
-      const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { followers:  {contains: username}, owner: {ne: username} }}));
-      const sortedData = sortObjectsAlphabetically(data.listPlaylists.items, "title");
-      setFollowedPlaylists(sortedData);
-      if(sortedData.length){
-        setSelectedFollowedPlaylist(sortedData[0]);
-        fetchFollowedPlaylistItems(sortedData[0])
+      const followedPlaylists = await getFollowedPlaylistsConnector();
+      setFollowedPlaylists(followedPlaylists);
+      if(followedPlaylists.length){
+        setSelectedFollowedPlaylist(followedPlaylists[0]);
+        getFollowedPlaylistItems(followedPlaylists[0])
       } 
     } catch(error) {
-      console.error('[playlist-fetchFollowedPlaylists] error', { error });
+      console.error('[playlist] getFollowedPlaylists error', { error });
     }
   }
 
-  const fetchFollowedPlaylistItems = async (playlist) => {
+  const getFollowedPlaylistItems = async (playlist) => {
     try {
       setLoadingFollowedPlaylistItems(true);
-      const playlistId = playlist.id;
-      const  { data } = await API.graphql(graphqlOperation(listItems, { filter: { itemPlaylistId: { eq: playlistId }}}));
-      setFollowedPlaylistItems(data.listItems.items);
+      const newFollowedPlaylistItems = await getFollowedPlaylistItemsConnector(playlist);
+      setFollowedPlaylistItems(newFollowedPlaylistItems);
       setLoadingFollowedPlaylistItems(false);
     } catch(error) {
       setLoadingFollowedPlaylistItems(false);
-      console.error('[playlist-fetchFollowedPlaylistItems] error', { error });
+      console.error('[playlist] getFollowedPlaylistItems error', { error });
     }
 }
 
-const unfollowPlaylist = async (playlist) => {
-  try{
-    setLoadingUnfollowPlaylist(true);
-    const { username } = await Auth.currentUserInfo() 
-    if(!playlist.followers.includes(username)){
-      return;
+  const unfollowPlaylist = async (playlist) => {
+    try{
+      setLoadingUnfollowPlaylist(true);
+      const newFollowedPlaylistsArray = await unfollowPlaylistConnector(playlist, followedPlaylists);
+      setFollowedPlaylists(newFollowedPlaylistsArray);
+      if(newFollowedPlaylistsArray.length){ 
+        setSelectedFollowedPlaylist(newFollowedPlaylistsArray[0]);       
+        getFollowedPlaylistItems(newFollowedPlaylistsArray[0]);
+      } else {
+        setSelectedFollowedPlaylist(false);
+      }
+      setLoadingUnfollowPlaylist(false);
+    } catch (error){
+      console.error('[playlis] unfollowPlaylist error', { error });
+      setLoadingUnfollowPlaylist(false);
     }
-    let followersInput = playlist.followers.filter(p => p!== username);
-    const unfollowPlaylistInput = { id: playlist.id, followers: followersInput }
-    await API.graphql({ query: updatePlaylistMutation, variables: { input: unfollowPlaylistInput }});
-    const newFollowedPlaylistsArray = followedPlaylists.filter(p => p.id !== playlist.id);
-    setFollowedPlaylists(newFollowedPlaylistsArray);
-    if(newFollowedPlaylistsArray.length){ 
-      setSelectedFollowedPlaylist(newFollowedPlaylistsArray[0]);       
-      fetchFollowedPlaylistItems(newFollowedPlaylistsArray[0]);
-    } else {
-      setSelectedFollowedPlaylist(false);
-    }
-    setLoadingUnfollowPlaylist(false);
-  } catch (error){
-    console.error('[playlis] unfollowPlaylist error', { error });
-    setLoadingUnfollowPlaylist(false);
   }
-}
-
 
   const toggleSelectedPlaylist = async (newPlaylist) => {
-
     if(!selectedPlaylist || newPlaylist.id !== selectedPlaylist.id){
+      setLoadingPlaylistItems(true);
       setSelectedPlaylist(newPlaylist);
-      await fetchPlaylistItems(newPlaylist)
+      const newPlaylistItems = await getPlaylistItemsConnector(newPlaylist);
+      setPlaylistItems(newPlaylistItems);
+      setLoadingPlaylistItems(false);
       setEditPlaylistFormData(newPlaylist)
     }
   }
 
   const toggleSelectedFollowedPlaylist = async (newPlaylist) => {
-
     if(newPlaylist.id !== selectedFollowedPlaylist.id){
       setSelectedFollowedPlaylist(newPlaylist);
-      await fetchFollowedPlaylistItems(newPlaylist)
+      await getFollowedPlaylistItems(newPlaylist)
     }
   }
 
@@ -323,7 +287,7 @@ const unfollowPlaylist = async (playlist) => {
     setTabValue(newTabValue);
     if(newTabValue === 1 && !followedPlaylists.length){
       setLoadingFollowedPlaylists(true);
-      await fetchFollowedPlaylists();
+      await getFollowedPlaylists();
       setLoadingFollowedPlaylists(false);
     }
   };

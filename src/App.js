@@ -95,6 +95,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     padding: theme.spacing(0, 1),
     // necessary for content to be below app bar
+    backgroundColor: theme.palette.secondary.main,
     ...theme.mixins.toolbar,
     justifyContent: 'flex-start',
   },
@@ -233,7 +234,7 @@ function App() {
               >
                 <div className={classes.drawerHeader}>
                   <IconButton onClick={() => handleMobileMenuClose()}>
-                    {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon style={{color:'#FFF'}} />}
+                    {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon style={{color:'#000'}} />}
                   </IconButton>
                 </div>
                 <Divider />
