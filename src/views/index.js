@@ -1,8 +1,8 @@
 
 import Browse from "./browse/desktop.js";
 import BrowseMobile from "./browse/mobile.js";
-import Playlist from "./playlist/desktop.js";
-import PlaylistMobile from "./playlist/mobile.js";
+import Playlist from "./playlists/desktop/index.js";
+import PlaylistMobile from "./playlists/mobile/index.js";
 import Profile from "./profile/index.js";
 import Shuffle from "./shuffle/desktop.js";
 import ShuffleMobile from "./shuffle/mobile.js";

@@ -48,12 +48,13 @@ const Browse = () => {
         setLoadingPlaylists(true)
         const { username } = await Auth.currentUserInfo() 
         const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { followers:  {notContains: username}, public: {eq: true} }}));
+        const playlistsWithItems = data.listPlaylists.items.filter(p => p.items.items.length > 0);
         const uniqueUsers = [...new Set(data.listPlaylists.items.map(playlist => playlist.owner))];
         setUsers(uniqueUsers);
-        setAllPlaylists(data.listPlaylists.items);
-        if(data.listPlaylists.items.length){
-          setSelectedPlaylist(data.listPlaylists.items[0]);
-          toggleSelectedPlaylist(data.listPlaylists.items[0])
+        setAllPlaylists(playlistsWithItems);
+        if(playlistsWithItems.length){
+          setSelectedPlaylist(playlistsWithItems[0]);
+          toggleSelectedPlaylist(playlistsWithItems[0])
         } 
         setLoadingPlaylists(false);
       } catch(error) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import '../../App.css';
+import '../../../App.css';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
-import { listPlaylists, listItems } from '../../graphql/queries';
+import { listPlaylists, listItems } from '../../../graphql/queries';
 import { NavLink } from 'react-router-dom';
 
 import { 
@@ -11,7 +11,7 @@ import {
   createItem as createItemMutation, 
   updatePlaylist as updatePlaylistMutation, 
   deleteItem as deleteItemMutation,
-} from '../../graphql/mutations';
+} from '../../../graphql/mutations';
 
 import { 
   AppBar,
@@ -32,7 +32,7 @@ import {
   TextField,
   Typography 
 } from '@material-ui/core';
-import { sortObjectsAlphabetically } from '../../util/helperFunctions.js';
+import { sortObjectsAlphabetically } from '../../../util/helperFunctions.js';
 import Reorder from '@material-ui/icons/PlaylistPlay';
 import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined'
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -43,7 +43,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import SaveOutlinedIcon from '@material-ui/icons/SaveOutlined';
 import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import theme from '../../theme';
+import theme from '../../../theme';
 
 
 const initialCreatePlaylistFormData = { id: '', title: '', public: true, followers: [] }
