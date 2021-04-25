@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../../../App.css';
 import YourPlaylistDetails from './YourPlaylistDetails.js';
-import { createPlaylistConnector, getPlaylistsConnector } from '../../../util/apiConnectors.js';
+import { createPlaylistConnector } from '../../../util/apiConnectors.js';
 
 import { 
   Button,
@@ -141,9 +141,9 @@ const YourPlaylists = (props) => {
                         <Button 
                           onClick={() => createPlaylist()}
                           variant="contained"
-                          color='primary'
+                          color='secondary'
                           style={{width:'100%',}}
-                        >Submit</Button>
+                        >Create</Button>
                       }
                     </Grid>
                   </Grid>

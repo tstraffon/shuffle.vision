@@ -31,7 +31,6 @@ import { isMobile, isTablet } from 'react-device-detect';
 import theme from './theme';
 
 import { 
-  Browse,
   BrowseMobile,
   Playlist,
   PlaylistMobile,
@@ -166,12 +165,6 @@ function App() {
                         </ListItemIcon>
                         <Typography variant="inherit">Playlists</Typography>
                       </MenuItem>
-                      <MenuItem component={NavLink} to={"/browse"} >
-                        <ListItemIcon style={navMenutItem}>
-                          <PublicIcon fontSize="large" />
-                        </ListItemIcon>
-                        <Typography variant="inherit">Browse</Typography>
-                      </MenuItem>
                       <MenuItem component={NavLink} to={"/profile"} >
                         <ListItemIcon style={navMenutItem}>
                           <AccountCircleIcon fontSize="large" />
@@ -193,7 +186,6 @@ function App() {
                   <Switch>
                     <Route exact path ="/" render={()=> <Shuffle/>}></Route>
                     <Route path ="/playlists" render={()=> <Playlist />}></Route> 
-                    <Route path ="/browse" render={()=> <Browse />}></Route> 
                     <Route path ="/profile" render={()=> <Profile />}></Route> 
                   </Switch> 
                 </div>

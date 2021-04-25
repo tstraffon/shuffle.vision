@@ -200,11 +200,11 @@ const Profile = () => {
                       </TableBody>
                     </Table>
                     <Grid item xs={12} />
-                    <Grid item key={"change-password"} xs={12} >
-                      <Button onClick={() => toggleShowChangePassword()} variant="contained" color="primary" style={{width:'100%', height:'100%'}}>Update Password</Button>
+                    <Grid item key={"change-password"} xs={12} lg={6}>
+                      <Button onClick={() => toggleShowChangePassword()} variant="contained" color="secondary" style={{width:'100%', height:'100%'}}>Update Password</Button>
                     </Grid>
-                    <Grid item key={"change-email"} xs={12} >
-                      <Button onClick={() => toggleShowUpdateEmail()} variant="contained" color="primary" style={{width:'100%', height:'100%'}}>Update Email</Button>
+                    <Grid item key={"change-email"} xs={12} lg={6}>
+                      <Button onClick={() => toggleShowUpdateEmail()} variant="contained" color="secondary" style={{width:'100%', height:'100%'}}>Update Email</Button>
                     </Grid>
                     <Grid item key={"sign-out"} xs={12} >
                       {loadingSignOut ?

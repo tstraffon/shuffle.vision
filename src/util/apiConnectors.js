@@ -11,7 +11,7 @@ import {
   deleteItem as deleteItemMutation,
 } from '../graphql/mutations';
 
-export const getPlaylistsConnector = async () => {
+export const getUserPlaylistsConnector = async () => {
   try {
     const { username } = await Auth.currentUserInfo() 
     const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { owner:  {eq: username} }}));
@@ -19,6 +19,17 @@ export const getPlaylistsConnector = async () => {
     return playlists;
   } catch(error) {
     console.error('[api-connector] error', { error });
+  }
+}
+
+export const getAllPlaylistsConnector = async (playlist, followedPlaylists) => {
+  try {
+    const { username } = await Auth.currentUserInfo() 
+    const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { followers:  {notContains: username}, public: {eq: true} }}));
+    const playlists = data.listPlaylists.items.filter(p => p.items.items.length > 0);
+    return playlists
+  } catch (error){
+    console.error('[api-connector] getAllPlaylistsConnector error', { error });
   }
 }
 
@@ -96,7 +107,7 @@ export const deleteItemConnector = async (id) => {
 
 export const getFollowedPlaylistsConnector = async () => {
   try {
-    const { username } = await Auth.currentUserInfo() 
+    const { username } = await Auth.currentUserInfo();
     const  { data } = await API.graphql(graphqlOperation(listPlaylists, {filter: { followers:  {contains: username}, owner: {ne: username} }}));
     const followedPlaylists = sortObjectsAlphabetically(data.listPlaylists.items, "title");
     return followedPlaylists
@@ -115,19 +126,29 @@ export const getFollowedPlaylistItemsConnector = async (playlist) => {
   }
 }
 
-export const unfollowPlaylistConnector = async (playlist, followedPlaylists) => {
+export const followPlaylistConnector = async (playlist) => {
   try{
     const { username } = await Auth.currentUserInfo() 
-    if(!playlist.followers.includes(username)){
-      return;
-    }
-    let followersInput = playlist.followers.filter(p => p!== username);
-    const unfollowPlaylistInput = { id: playlist.id, followers: followersInput }
-    await API.graphql({ query: updatePlaylistMutation, variables: { input: unfollowPlaylistInput }});
-    const newFollowedPlaylistsArray = followedPlaylists.filter(p => p.id !== playlist.id);
-    return newFollowedPlaylistsArray;
+    let followersInput = playlist.followers;
+    followersInput.push(username);
+    const followPlaylistInput = { id: playlist.id, followers: followersInput }
+    await API.graphql({ query: updatePlaylistMutation, variables: { input: followPlaylistInput }});
+    return;
   } catch (error){
     console.error('[api-connector] unfollowPlaylistConnector error', { error });
   }
 }
+
+export const unfollowPlaylistConnector = async (playlist) => {
+  try{
+    const { username } = await Auth.currentUserInfo() 
+    let followersInput = playlist.followers.filter(p => p!== username);
+    const unfollowPlaylistInput = { id: playlist.id, followers: followersInput }
+    await API.graphql({ query: updatePlaylistMutation, variables: { input: unfollowPlaylistInput }});
+    return;
+  } catch (error){
+    console.error('[api-connector] unfollowPlaylistConnector error', { error });
+  }
+}
+
 

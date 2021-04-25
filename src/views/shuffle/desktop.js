@@ -277,9 +277,9 @@ const ShuffleMobile = () => {
                     <Button 
                       onClick={() => createItem()}
                       variant="contained"
-                      color='primary'
+                      color='secondary'
                       style={{width:'90%', marginTop:'24px'}}
-                    >Submit</Button>
+                    >Create</Button>
                   }
                 </Grid>
               </Grid>

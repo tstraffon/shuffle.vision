@@ -30,7 +30,6 @@ import {
 
 import FeaturedPlayListOutlinedIcon from '@material-ui/icons/FeaturedPlayListOutlined'
 import DeleteIcon from '@material-ui/icons/Delete';
-import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import SearchIcon from '@material-ui/icons/Search';
 import SaveOutlinedIcon from '@material-ui/icons/SaveOutlined';
@@ -54,7 +53,6 @@ const PlaylistDetails = (props) => {
   const [editPlaylistFormData, setEditPlaylistFormData] = useState(initialCreatePlaylistFormData);
   const [showEditPlaylist, setShowEditPlaylist ] = React.useState(false);
   const [showDeletePlaylist, setShowDeletePlaylist ] = React.useState(false);
-  const [showCreateItem, setShowCreateItem ] = React.useState(false);
   const [showEditItem, setShowEditItem ] = React.useState('');
   const [showItemActions, setShowItemActions] = React.useState('');
   const [createItemFormData, setCreateItemForm] = useState(initialItemState);
@@ -88,7 +86,6 @@ const PlaylistDetails = (props) => {
       createItemFormData['id'] = createdItem.createItem.id;
       setPlaylistItems([ ...playlistItems, createdItem.createItem ]);
       setLoadingCreateItem(false);
-      setShowCreateItem(!setShowCreateItem);
       setCreateItemForm(initialItemState);
     } catch (error) {
       console.error('[playlist] createItem error', { error });
@@ -121,7 +118,6 @@ const PlaylistDetails = (props) => {
       setUserPlaylists(newUserPlaylistsArray);
       setShowDeletePlaylist(!showDeletePlaylist);
       props.resetStateOnPlaylistDelete(selectedPlaylist.id)
-      // setSelectedPlaylist(false)
     } catch (error){
       console.error('[playlist] deletePlaylist error', { error });
     }
@@ -161,10 +157,6 @@ const PlaylistDetails = (props) => {
 
   const toggleShowDeletePlaylist = () => {
     setShowDeletePlaylist(!showDeletePlaylist);
-  }
-
-  const toggleShowCreateItem = () => {
-    setShowCreateItem(!showCreateItem);
   }
 
   const toggleShowEditItem = (item) => {
@@ -315,7 +307,7 @@ const PlaylistDetails = (props) => {
                         variant="contained"
                         color='secondary'
                         style={{width:'100%',}}
-                      >Submit</Button>
+                      >Create</Button>
                     }
                   </Grid>
                 </Grid>
