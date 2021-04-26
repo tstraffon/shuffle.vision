@@ -61,7 +61,8 @@ const ShuffleMobile = () => {
         let playlists = data.listPlaylists.items;
         const sortedPlaylists = await sortObjectsAlphabetically(playlists, "title");
         setAllPlaylists(sortedPlaylists);
-        const newUsersPlaylists = allPlaylists.filter(p => p.owner === username);
+        const newUsersPlaylists = sortedPlaylists.filter(p => p.owner === username);
+        console.log("newUsersPlaylists", newUsersPlaylists);
         setUserPlaylists(newUsersPlaylists);
         let initialChecked = [], totalCount = 0;
         for(const p of sortedPlaylists){
