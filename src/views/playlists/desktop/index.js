@@ -3,6 +3,7 @@ import '../../../App.css';
 import YourPlaylists from './YourPlaylists.js';
 import PlaylistsYouFollow from './PlaylistsYouFollow';
 import BrowsePlaylists from './BrowsePlaylists';
+import { sortObjectsAlphabetically } from '../../../util/helperFunctions.js';
 
 import {
   createPlaylistConnector,
@@ -58,7 +59,10 @@ const Playlist = () => {
   const getPlaylists = async () => {
     try {
       const yourPlaylists = await getUserPlaylistsConnector();
-      const yourTopPlaylists = yourPlaylists.slice(0, 4);
+      const yourMostRecentPlaylists = sortObjectsAlphabetically(yourPlaylists, "createdAt");
+      const start = yourMostRecentPlaylists.length - 4;
+      const end = yourMostRecentPlaylists.length;
+      const yourTopPlaylists = yourMostRecentPlaylists.slice(start, end);
       setTopUserPlaylists(yourTopPlaylists);
       setUserPlaylists(yourPlaylists);
       setLoadingPlaylists(false);

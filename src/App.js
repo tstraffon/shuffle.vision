@@ -243,12 +243,6 @@ function App() {
                     </ListItemIcon>
                     <Typography variant="inherit">Playlists</Typography>
                   </MenuItem>
-                  <MenuItem component={NavLink} onClick={() => handleMobileMenuClose()} to={"/browse"} >
-                    <ListItemIcon>
-                      <PublicIcon style={{color:'#FFF'}} fontSize="large" />
-                    </ListItemIcon>
-                    <Typography variant="inherit">Browse</Typography>
-                  </MenuItem>
                   <MenuItem component={NavLink} onClick={() => handleMobileMenuClose()} to={"/profile"} >
                     <ListItemIcon>
                       <AccountCircleIcon style={{color:'#FFF'}} fontSize="large" />
@@ -268,7 +262,6 @@ function App() {
                   <Switch>
                     <Route exact path ="/" render={()=> <ShuffleMobile/>}></Route>
                     <Route path ="/playlists" render={()=> <PlaylistMobile />}></Route> 
-                    <Route path ="/browse" render={()=> <BrowseMobile />}></Route> 
                     <Route path ="/profile" render={()=> <Profile />}></Route> 
                   </Switch> 
                 </div>

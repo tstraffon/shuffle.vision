@@ -21,7 +21,7 @@ import Reorder from '@material-ui/icons/PlaylistPlay';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import theme from '../../../theme';
 
-const playlistCard = { height: '150px', width: '150px', borderRadius:'50%',alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF',  display: 'flex', justifyContent: 'center'  }
+const playlistCard = { height: '125px', width: '125px', borderRadius:'50%',alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF',  display: 'flex', justifyContent: 'center'  }
 const cardContainer = {justifyContent: 'center', display: 'grid'}
 
 const YourPlaylists = (props) => {
@@ -108,11 +108,11 @@ const YourPlaylists = (props) => {
           :
             <React.Fragment>
               <Grid item xs={12} style={{marginBottom:'16px'}} >
-                <Reorder size='small' style={{paddingRight:'16px', float:'left'}} />
+                <Reorder fontSize='large' style={{paddingRight:'16px', float:'left'}} />
                 <Typography variant='h4' style={{float: 'left', }}>Your Playlists</Typography>
               </Grid>  
-              <Grid container spacing={4} >
-                <Grid item xs={4} style={{paddingLeft:'32px', paddingRight:'32px'}} >
+              <Grid container spacing={4} style={{paddingLeft:'16px', paddingRight:'16px'}}>
+                <Grid item xs={12} style={{paddingLeft:'32px', paddingRight:'32px'}} >
                   <FormControl component="fieldset" style={{width:'100%'}}>
                     <FormLabel component="legend" style={{paddingBottom: '8px', display:'flex', float:'left'}}>Create New Playlist</FormLabel>
                     <TextField
@@ -148,7 +148,7 @@ const YourPlaylists = (props) => {
                   </Grid>
                 </Grid>
                 { userPlaylists.map(p => (
-                  <Grid item key={p.id} xs={12} md={2} style={cardContainer}>
+                  <Grid item key={p.id} xs={6} md={2} style={cardContainer}>
                     <Card onClick={() => toggleSelectedPlaylist(p)} style={{ ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
                       <CardContent  >
                         <Typography>{p.title}</Typography>
