@@ -137,7 +137,7 @@ const Playlist = () => {
       <Grid container spacing={4} >
         <Grid item xs={12} >
           { showYourPlaylists ?
-            <Card position="fixed" >
+            <Card position="fixed" style={{padding:'16px'}} >
               { loadingPlaylists ?
                 <CardContent style={{height: '75vh'}}>
                   <div className="loading-container"> 
@@ -164,7 +164,7 @@ const Playlist = () => {
           :
             <React.Fragment>
               { showPlaylistsYouFollow ?
-                <Card position="fixed" >
+                <Card position="fixed" style={{padding:'16px'}} >
                   { loadingFollowedPlaylists ?
                     <CardContent style={{height: '75vh'}}>
                       <div className="loading-container"> 
@@ -200,7 +200,7 @@ const Playlist = () => {
               :
                 <React.Fragment>
                   { showBrowsePlaylists ?
-                    <Card position="fixed" >
+                    <Card position="fixed" style={{padding:'16px'}} >
                       { loadingBrowsePlaylists ?
                         <CardContent style={{height: '75vh'}}>
                           <div className="loading-container"> 
@@ -235,7 +235,7 @@ const Playlist = () => {
                     </Card>
                   :
                     <React.Fragment>
-                      <Card position="fixed" style={{marginBottom:'32px'}} >
+                      <Card position="fixed" style={{marginBottom:'32px', padding:'16px'}} >
                         <CardContent >
                           <Grid container spacing={4}>
                             <Grid item xs={12} style={{paddingBottom: '0px'}}>
@@ -253,7 +253,6 @@ const Playlist = () => {
                               </Grid >
                             :
                               <React.Fragment>
-
                                 <Grid item xs={8} >
                                   <Grid container spacing={4} >
                                     { topUserPlaylists.map(p => (
@@ -316,7 +315,7 @@ const Playlist = () => {
                         </CardContent> 
                       </Card>
                       { followedPlaylists.length > 0 ?
-                        <Card position="fixed" style={{marginBottom:'32px'}}>
+                        <Card position="fixed" style={{marginBottom:'32px',  padding:'16px'}}>
                           <CardContent >
                             <Grid container spacing={4}>
                               <Grid item xs={12} style={{paddingBottom: '0px'}}>
@@ -363,7 +362,7 @@ const Playlist = () => {
                         null
                       }
                       {topBrowsePlaylists.length > 0 ?
-                        <Card position="fixed" >
+                        <Card position="fixed" style={{padding:'16px'}}>
                           <CardContent >
                             <Grid container spacing={4}>
                               <Grid item xs={12} style={{paddingBottom: '0px'}}>

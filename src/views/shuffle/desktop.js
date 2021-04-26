@@ -195,7 +195,7 @@ const ShuffleMobile = () => {
   return(
     <div className='view-container'>
       <Grid container spacing={4}>
-        <Grid item xs={8}>
+        <Grid item xs={8} style={{paddingRight:'32px'}}>
           <Button 
             onClick={() => shuffleItems()}
             startIcon={<ShuffleIcon  style={{fontSize:'32pt', paddingBottom: '5px', fontWeight:'bold'}}/>} 
@@ -203,25 +203,25 @@ const ShuffleMobile = () => {
             variant='contained' 
             style={{width:'100%', height: '200px',  fontSize:'28pt', fontWeight:'bold'}}
           >Shuffle</Button>
-          <Grid container spacing={4} justify="center" style={{marginTop: `32px`, overflow:'scroll', overflowX: 'hidden'}} >
+          <Grid container spacing={4} justify="center" style={{marginTop: `24px`, overflow:'scroll', overflowX: 'hidden', }} >
             { display ==='Cards' ?
-                activeItems.map(i => (
-                    <Grid item key={i.id} xs={12} md={3}>
-                      <Card style={{height: '150px', width: '150px', alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF', display: 'flex', justifyContent: 'center' }}>
-                        <CardContent  >
-                          <Typography>{i.content}</Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                ))
-              :
-                <Grid item key={'blockDisplay'} xs={12}>
-                  <Card style={{ padding:'64px', backgroundColor: theme.palette.primary.main, alignItems: 'center', display: 'flex', justifyContent: 'center' }}>
-                    <CardContent style={{ width: '100%', color:'#FFF',  }}>
-                      <Typography variant='h3' >{activeItems.map(i => (i.content + ' '))}</Typography>
+              activeItems.map(i => (
+                <Grid item key={i.id} xs={12} md={3}>
+                  <Card style={{height: '150px', width: '150px', alignItems: 'center', backgroundColor: theme.palette.primary.main, color:'#FFF', display: 'flex', justifyContent: 'center' }}>
+                    <CardContent  >
+                      <Typography>{i.content}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
+              ))
+            :
+              <Grid item key={'blockDisplay'} xs={12}>
+                <Card style={{ padding:'64px', backgroundColor: theme.palette.primary.main, alignItems: 'center', display: 'flex', justifyContent: 'center' }}>
+                  <CardContent style={{ width: '100%', color:'#FFF',  }}>
+                    <Typography variant='h3' >{activeItems.map(i => (i.content + ' '))}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
             }
           </Grid>
         </Grid>

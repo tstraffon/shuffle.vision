@@ -94,7 +94,7 @@ const YourPlaylists = (props) => {
         <React.Fragment>
           {selectedPlaylist ?
             <React.Fragment>
-              <Grid item xs={12} style={{paddingBottom:'8px'}}> 
+              <Grid item xs={12} style={{paddingBottom:'8px', padding:'16px'}}> 
                 <IconButton onClick={() =>  setSelectedPlaylist(false)} style={{float: 'left', paddingLeft:'32px', borderRadius:'5%'}}>
                   <ChevronLeftIcon />
                   <Typography style={{float: 'left', paddingLeft:'8px'}}>Your Playlists</Typography> 
