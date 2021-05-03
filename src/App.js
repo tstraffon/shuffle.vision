@@ -21,7 +21,6 @@ import {
 } from '@material-ui/core';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import Reorder from '@material-ui/icons/PlaylistPlay';
-import PublicIcon from '@material-ui/icons/Public';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import MenuIcon from '@material-ui/icons/Menu';
@@ -31,7 +30,6 @@ import { isMobile, isTablet } from 'react-device-detect';
 import theme from './theme';
 
 import { 
-  BrowseMobile,
   Playlist,
   PlaylistMobile,
   Profile,

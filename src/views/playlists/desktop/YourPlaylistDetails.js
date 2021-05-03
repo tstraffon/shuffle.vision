@@ -251,25 +251,25 @@ const PlaylistDetails = (props) => {
           { showDeletePlaylist ? 
             <Grid item xs={6}>
               <Grid container spacing={4}>
-                <Grid item xs={12}>
+                <Grid item xs={12} style={{padding:'40px'}}>
                   <Typography variant='h3'>Are you sure want to delete this playlist?</Typography>
                 </Grid>
-                <Grid item xs={12} style={{paddingTop: '0px'}} >
+                {/* <Grid item xs={12} style={{paddingTop: '0px'}} >
                   <Typography variant='h1'>{selectedPlaylist.title}</Typography>
-                </Grid>
-                <Grid item xs={12} style={{paddingTop: '0px'}} >
+                </Grid> */}
+                {/* <Grid item xs={12} style={{paddingTop: '0px'}} >
                   { playlistItems.length > 0 ?
                     <Typography variant='h3'>This will also delete all {playlistItems.length} of it's items</Typography>
                   :
                     null
                   }
-                </Grid>
+                </Grid> */}
                 <Grid item xs={3} />
                 <Grid item key={"cancel"} xs={3} style={{paddingTop: '0px'}} >
-                  <Button onClick={() => toggleShowDeletePlaylist()} startIcon={<CancelOutlinedIcon />} style={{width:'100%', height:'100%'}}>Cancel</Button>
+                  <Button onClick={() => toggleShowDeletePlaylist()} startIcon={<CancelOutlinedIcon />} variant="outlined" style={{width:'100%', height:'100%'}}>Cancel</Button>
                 </Grid>
                 <Grid item key={"delete"} xs={3}  style={{paddingTop: '0px'}} >
-                  <Button onClick={() => deletePlaylist()} startIcon={<DeleteIcon />} variant="contained" color="primary" style={{width:'100%', height:'100%'}}>Delete</Button>
+                  <Button onClick={() => deletePlaylist()} startIcon={<DeleteIcon />} variant="contained" color="secondary" style={{width:'100%', height:'100%'}}>Delete</Button>
                 </Grid>
                 <Grid item xs={3} />
               </Grid>

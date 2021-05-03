@@ -58,11 +58,12 @@ const Playlist = () => {
 
   const getPlaylists = async () => {
     try {
-      const yourPlaylists = await getUserPlaylistsConnector();
+      let yourPlaylists = await getUserPlaylistsConnector();
       const yourMostRecentPlaylists = sortObjectsAlphabetically(yourPlaylists, "createdAt");
       const start = yourMostRecentPlaylists.length - 4;
       const end = yourMostRecentPlaylists.length;
-      const yourTopPlaylists = yourMostRecentPlaylists.slice(start, end);
+      const yourTopPlaylists = yourMostRecentPlaylists.slice(start, end).reverse();
+      yourPlaylists = yourPlaylists.reverse();
       setTopUserPlaylists(yourTopPlaylists);
       setUserPlaylists(yourPlaylists);
       setLoadingPlaylists(false);
@@ -148,7 +149,16 @@ const Playlist = () => {
                 <CardContent >
                   <Grid container spacing={4} style={{paddingBottom:'16px'}} >
                     <Grid item xs={12} style={{paddingBottom:'8px'}}> 
-                      <IconButton fontSize='large' onClick={() => {setShowYourPlaylists(false); setSelectedPlaylist(false)}} style={{float: 'left', borderRadius:'5%'}}>
+                      <IconButton fontSize='large' onClick={() => {
+                        setShowYourPlaylists(false); 
+                        setSelectedPlaylist(false);
+                        setLoadingBrowsePlaylists(true); 
+                        setLoadingFollowedPlaylists(true); 
+                        setLoadingPlaylists(true); 
+                        setShowPlaylistsYouFollow(false); 
+                        setSelectedFollowedPlaylist(false);
+                        getPlaylists(); 
+                        }} style={{float: 'left', borderRadius:'5%'}}>
                         <ChevronLeftIcon />
                         <Typography style={{float: 'left', paddingLeft:'8px'}}>All Playlists</Typography> 
                       </IconButton>

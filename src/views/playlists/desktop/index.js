@@ -58,11 +58,12 @@ const Playlist = () => {
 
   const getPlaylists = async () => {
     try {
-      const yourPlaylists = await getUserPlaylistsConnector();
+      let yourPlaylists = await getUserPlaylistsConnector();
       const yourMostRecentPlaylists = sortObjectsAlphabetically(yourPlaylists, "createdAt");
       const start = yourMostRecentPlaylists.length - 4;
       const end = yourMostRecentPlaylists.length;
-      const yourTopPlaylists = yourMostRecentPlaylists.slice(start, end);
+      const yourTopPlaylists = yourMostRecentPlaylists.slice(start, end).reverse();
+      yourPlaylists = yourPlaylists.reverse()
       setTopUserPlaylists(yourTopPlaylists);
       setUserPlaylists(yourPlaylists);
       setLoadingPlaylists(false);
@@ -101,6 +102,7 @@ const Playlist = () => {
       setSelectedPlaylist(newPlaylist);
       setShowYourPlaylists(true);
       setLoadingCreatePlaylist(false);
+      setPageRefresh(true);
     } catch (error) {
       setLoadingPlaylists(false);
       console.error('[playlist] createPlaylist error', { error });
@@ -148,7 +150,16 @@ const Playlist = () => {
                 <CardContent >
                   <Grid container spacing={4} style={{paddingBottom:'16px'}} >
                     <Grid item xs={12} style={{paddingBottom:'8px'}}> 
-                      <IconButton onClick={() => {setShowYourPlaylists(false); setSelectedPlaylist(false)}} style={{float: 'left', borderRadius:'5%'}}>
+                      <IconButton onClick={() => {
+                        setShowYourPlaylists(false); 
+                        setSelectedPlaylist(false);
+                        setLoadingBrowsePlaylists(true); 
+                        setLoadingFollowedPlaylists(true); 
+                        setLoadingPlaylists(true); 
+                        setShowPlaylistsYouFollow(false); 
+                        setSelectedFollowedPlaylist(false);
+                        getPlaylists(); 
+                        }} style={{float: 'left', borderRadius:'5%'}}>
                         <ChevronLeftIcon />
                         <Typography style={{float: 'left', paddingLeft:'8px'}}>All Playlists</Typography> 
                       </IconButton>
@@ -253,19 +264,23 @@ const Playlist = () => {
                               </Grid >
                             :
                               <React.Fragment>
-                                <Grid item xs={8} >
-                                  <Grid container spacing={4} >
-                                    { topUserPlaylists.map(p => (
-                                      <Grid item key={p.id} xs={12} md={3} style={cardContainer}>
-                                        <Card onClick={() => toggleSelectedPlaylist(p)} style={{ ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
-                                          <CardContent  >
-                                            <Typography>{p.title}</Typography>
-                                          </CardContent>
-                                        </Card>
-                                      </Grid>
-                                    ))}
+                                { topUserPlaylists.length > 0 ?
+                                  <Grid item xs={8} >
+                                    <Grid container spacing={4} >
+                                      { topUserPlaylists.map(p => (
+                                        <Grid item key={p.id} xs={12} md={3} style={cardContainer}>
+                                          <Card onClick={() => toggleSelectedPlaylist(p)} style={{ ...playlistCard, backgroundColor: theme.palette.primary.main, color:'#FFF'}}>
+                                            <CardContent  >
+                                              <Typography>{p.title}</Typography>
+                                            </CardContent>
+                                          </Card>
+                                        </Grid>
+                                      ))}
+                                    </Grid>
                                   </Grid>
-                                </Grid>
+                                :
+                                  <Grid item xs={4} />
+                                }
                                 <Grid item xs={4} style={{paddingLeft:'32px', paddingRight:'32px'}} >
                                   <FormControl component="fieldset" style={{width:'100%'}}>
                                     <FormLabel component="legend" style={{paddingBottom: '8px', display:'flex', float:'left'}}>Create New Playlist</FormLabel>
@@ -302,13 +317,17 @@ const Playlist = () => {
                                     </Grid>
                                   </Grid>
                                 </Grid>
-                                <Grid item xs={12} style={{paddingBottom: '0px'}}>
-                                  <Button 
-                                    onClick={() => toggleShowYourPlaylists()}
-                                    color='primary'
-                                    style={{width:'100%',}}
-                                  >View All Your Playlists</Button>
-                                </Grid> 
+                                { topUserPlaylists.length > 0 ?
+                                  <Grid item xs={12} style={{paddingBottom: '0px'}}>
+                                    <Button 
+                                      onClick={() => toggleShowYourPlaylists()}
+                                      color='primary'
+                                      style={{width:'100%',}}
+                                    >View All Your Playlists</Button>
+                                  </Grid>
+                                :
+                                  null
+                                }
                               </React.Fragment>
                             }
                           </Grid>
